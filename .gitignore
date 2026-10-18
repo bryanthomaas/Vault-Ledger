@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+
+# Builds
+dist/
+build/
+coverage/
+*.tsbuildinfo
+
+# Expo / React Native
+.expo/
+web-build/
+apps/mobile/dist/
+apps/mobile/ios/
+apps/mobile/android/
+expo-env.d.ts
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Env
+.env
+.env.*
+!.env.example
+
+# Testing
+playwright-report/
+test-results/
+blob-report/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.idea/
+*.log
+npm-debug.log*
