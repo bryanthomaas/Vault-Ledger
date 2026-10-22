@@ -2,11 +2,13 @@ import dotenv from 'dotenv';
 import { createServer } from './server';
 import { pool } from './db/client';
 import { runMigrations } from './db/migrate';
+import { OutboxWorker } from './workers/outboxWorker';
 
 dotenv.config();
 
 const PORT = parseInt(process.env.PORT || '4000', 10);
 const HOST = process.env.HOST || '0.0.0.0';
+const RUN_WORKER = process.env.RUN_WORKER !== 'false';
 
 async function main() {
   // Attempt to run migrations on startup
@@ -17,6 +19,11 @@ async function main() {
   }
 
   const server = await createServer();
+  const worker = new OutboxWorker();
+
+  if (RUN_WORKER) {
+    worker.start(2500);
+  }
 
   try {
     const address = await server.listen({ port: PORT, host: HOST });
@@ -35,6 +42,7 @@ async function main() {
   for (const sig of signals) {
     process.on(sig, async () => {
       console.log(`[Server] Received ${sig}, closing gracefully...`);
+      worker.stop();
       await server.close();
       await pool.end();
       process.exit(0);
