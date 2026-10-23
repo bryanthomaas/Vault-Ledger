@@ -16,6 +16,7 @@ import { budgetRoutes } from './routes/budgetRoutes';
 import { goalRoutes } from './routes/goalRoutes';
 import { notificationRoutes } from './routes/notificationRoutes';
 import { syncRoutes } from './routes/syncRoutes';
+import { insightsRoutes } from './routes/insightsRoutes';
 import { pool } from './db/client';
 
 export async function createServer() {
@@ -104,6 +105,7 @@ export async function createServer() {
   await server.register(goalRoutes, { prefix: '/api/goals' });
   await server.register(notificationRoutes, { prefix: '/api/notifications' });
   await server.register(syncRoutes, { prefix: '/api/sync' });
+  await server.register(insightsRoutes, { prefix: '/api/insights' });
 
   return server;
 }
