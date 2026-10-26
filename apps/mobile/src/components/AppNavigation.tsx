@@ -16,7 +16,7 @@ const NAV_ITEMS: NavItem[] = [
   { name: 'Rules', path: '/(tabs)/rules', icon: '⚡' },
   { name: 'Budgets', path: '/(tabs)/budgets', icon: '◷' },
   { name: 'Goals', path: '/(tabs)/goals', icon: '◎' },
-  { name: 'Activity', path: '/(tabs)/activity', icon: ' bell' },
+  { name: 'Activity', path: '/(tabs)/activity', icon: '🔔' },
 ];
 
 export const DesktopSidebar: React.FC = () => {
@@ -80,7 +80,7 @@ export const MobileTabBar: React.FC = () => {
 
   return (
     <View style={styles.tabBarContainer}>
-      {NAV_ITEMS.slice(0, 5).map((item) => {
+      {NAV_ITEMS.map((item) => {
         const isActive =
           pathname === item.path ||
           (item.path === '/(tabs)/' && (pathname === '/' || pathname === '/(tabs)'));

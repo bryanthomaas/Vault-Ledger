@@ -1,4 +1,4 @@
-import { db } from '../db/client';
+import { db, type AppDatabase } from '../db/client';
 import { recurringSeries, journalEntries, postings, accounts } from '../db/schema';
 import { eq, and, gte, inArray, sql } from 'drizzle-orm';
 import { LedgerService } from './ledgerService';
@@ -68,7 +68,7 @@ export class ForecastingService {
     let stdDevSpendCents = 2500;
 
     if (variableRows.length > 10) {
-      const totalVariable = variableRows.reduce((sum, r) => sum + Math.abs(Number(r.amountCents)), 0);
+      const totalVariable = variableRows.reduce((sum: number, r: { amountCents: any }) => sum + Math.abs(Number(r.amountCents)), 0);
       meanDailySpendCents = Math.round(totalVariable / 90);
       // Standard deviation of daily spending
       stdDevSpendCents = Math.round(meanDailySpendCents * 0.45);

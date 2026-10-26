@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
-import { View, StyleSheet, ActivityIndicator, StatusBar, Platform } from 'react-native';
+import { View, StyleSheet, ActivityIndicator, Platform } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import { Slot, useRouter, useSegments } from 'expo-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuthStore } from '../store/authStore';
@@ -47,7 +48,7 @@ function RootNavigator() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={colors.background} />
+      <StatusBar style="light" />
       <Slot />
     </View>
   );
