@@ -74,7 +74,7 @@ describe('money utilities', () => {
       expect(
         verifyDoubleEntryBalance([
           { amountCents: -350 }, // -3.50 from Checking
-          { amountCents: 350 },  // +3.50 to Coffee Merchant counterparty
+          { amountCents: 350 }, // +3.50 to Coffee Merchant counterparty
         ]),
       ).toBe(true);
 

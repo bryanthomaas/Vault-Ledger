@@ -47,8 +47,8 @@ export type RefreshTokenInput = z.infer<typeof RefreshTokenInputSchema>;
 
 export const AccountTypeSchema = z.enum([
   'depository', // Checking, cash, liquid bank accounts
-  'credit',     // Credit card / revolving debt
-  'vault',      // Savings vault / goal sub-account
+  'credit', // Credit card / revolving debt
+  'vault', // Savings vault / goal sub-account
   'counterparty', // Merchant or employer external counterparties (for balancing double-entry)
 ]);
 export type AccountType = z.infer<typeof AccountTypeSchema>;

@@ -19,7 +19,9 @@ export async function requireAuth(request: FastifyRequest, reply: FastifyReply) 
   try {
     const payload = await authService.verifyAccessToken(token);
     request.user = payload;
-  } catch (_err) {
-    return reply.status(401).send({ error: 'Unauthorized', message: 'Token is invalid or expired' });
+  } catch {
+    return reply
+      .status(401)
+      .send({ error: 'Unauthorized', message: 'Token is invalid or expired' });
   }
 }

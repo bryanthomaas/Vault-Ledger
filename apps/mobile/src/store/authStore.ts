@@ -111,7 +111,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       // Trigger automatic data sync for demo user
       try {
-        await apiRequest('/api/sync', { method: 'POST', headers: { Authorization: `Bearer ${res.accessToken}` } });
+        await apiRequest('/api/sync', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${res.accessToken}` },
+        });
       } catch (_syncErr) {
         // Continue even if sync was already populated
       }

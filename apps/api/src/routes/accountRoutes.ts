@@ -1,9 +1,6 @@
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 import { z } from 'zod';
-import {
-  AccountSchema,
-  CreateAccountInputSchema,
-} from '@vault-ledger/shared';
+import { AccountSchema, CreateAccountInputSchema } from '@vault-ledger/shared';
 import { LedgerService } from '../services/ledgerService';
 import { requireAuth } from '../plugins/auth';
 import { db } from '../db/client';

@@ -1,6 +1,6 @@
 import { db } from '../db/client';
 import { outboxEvents, users } from '../db/schema';
-import { eq, and, sql, lte } from 'drizzle-orm';
+import { eq, and, lte } from 'drizzle-orm';
 import { RulesEngine, type TransactionCreatedEvent } from './rulesEngine';
 import { RecurringDetector } from './recurringDetector';
 import { BudgetMonitor } from './budgetMonitor';
@@ -66,10 +66,7 @@ export class OutboxWorker {
         }
 
         // Mark event processed
-        await db
-          .update(outboxEvents)
-          .set({ processed: true })
-          .where(eq(outboxEvents.id, event.id));
+        await db.update(outboxEvents).set({ processed: true }).where(eq(outboxEvents.id, event.id));
       } catch (err: any) {
         console.error(`[Worker] Failed processing outbox event ${event.id}:`, err);
       }
@@ -83,12 +80,7 @@ export class OutboxWorker {
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
     const deleted = await db
       .delete(users)
-      .where(
-        and(
-          eq(users.isDemo, true),
-          lte(users.createdAt, oneDayAgo),
-        ),
-      )
+      .where(and(eq(users.isDemo, true), lte(users.createdAt, oneDayAgo)))
       .returning({ id: users.id, email: users.email });
 
     if (deleted.length > 0) {

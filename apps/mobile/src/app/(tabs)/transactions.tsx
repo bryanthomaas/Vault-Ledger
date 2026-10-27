@@ -75,9 +75,7 @@ export default function TransactionsScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>TRANSACTIONS</Text>
-        <Text style={styles.subtitle}>
-          {filtered.length} verified ledger postings
-        </Text>
+        <Text style={styles.subtitle}>{filtered.length} verified ledger postings</Text>
       </View>
 
       {/* Search Input */}
@@ -106,9 +104,7 @@ export default function TransactionsScreen() {
                 onPress={() => setSelectedCategory(item)}
                 style={[styles.catPill, isSelected && styles.catPillSelected]}
               >
-                <Text style={[styles.catText, isSelected && styles.catTextSelected]}>
-                  {item}
-                </Text>
+                <Text style={[styles.catText, isSelected && styles.catTextSelected]}>{item}</Text>
               </TouchableOpacity>
             );
           }}
@@ -137,9 +133,7 @@ export default function TransactionsScreen() {
                   <Text style={styles.merchant}>{item.merchant || item.description}</Text>
                   <View style={styles.badgeRow}>
                     <Badge label={item.category} variant="default" />
-                    {item.isRoundUp && (
-                      <Badge label="ROUND-UP" variant="accent" />
-                    )}
+                    {item.isRoundUp && <Badge label="ROUND-UP" variant="accent" />}
                     <Text style={styles.date}>
                       {new Date(item.occurredAt).toLocaleDateString('en-US', {
                         month: 'short',
@@ -182,9 +176,7 @@ export default function TransactionsScreen() {
                 {CATEGORIES.filter((c) => c !== 'All').map((cat) => (
                   <TouchableOpacity
                     key={cat}
-                    onPress={() =>
-                      categoryMutation.mutate({ id: selectedTx.id, category: cat })
-                    }
+                    onPress={() => categoryMutation.mutate({ id: selectedTx.id, category: cat })}
                     style={[
                       styles.modalCatBtn,
                       selectedTx.category === cat && styles.modalCatBtnActive,

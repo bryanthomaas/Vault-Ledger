@@ -1,5 +1,12 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, Platform } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  useWindowDimensions,
+  Platform,
+} from 'react-native';
 import { useRouter, usePathname } from 'expo-router';
 import { colors, typography } from '../theme/tokens';
 import { useAuthStore } from '../store/authStore';
@@ -48,12 +55,8 @@ export const DesktopSidebar: React.FC = () => {
               onPress={() => router.push(item.path as any)}
               style={[styles.navItem, isActive && styles.navItemActive]}
             >
-              <Text style={[styles.navIcon, isActive && styles.navTextActive]}>
-                {item.icon}
-              </Text>
-              <Text style={[styles.navText, isActive && styles.navTextActive]}>
-                {item.name}
-              </Text>
+              <Text style={[styles.navIcon, isActive && styles.navTextActive]}>{item.icon}</Text>
+              <Text style={[styles.navText, isActive && styles.navTextActive]}>{item.name}</Text>
             </TouchableOpacity>
           );
         })}

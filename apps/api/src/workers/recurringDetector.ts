@@ -1,11 +1,6 @@
 import { db } from '../db/client';
-import {
-  journalEntries,
-  postings,
-  recurringSeries,
-  notifications,
-} from '../db/schema';
-import { eq, and, desc, inArray } from 'drizzle-orm';
+import { journalEntries, postings, recurringSeries, notifications } from '../db/schema';
+import { eq, and, desc } from 'drizzle-orm';
 import { formatCurrency, type RecurringFrequency } from '@vault-ledger/shared';
 import type { TransactionCreatedEvent } from './rulesEngine';
 
@@ -24,10 +19,7 @@ export class RecurringDetector {
       .from(journalEntries)
       .innerJoin(postings, eq(journalEntries.id, postings.entryId))
       .where(
-        and(
-          eq(journalEntries.userId, event.userId),
-          eq(journalEntries.merchant, event.merchant),
-        ),
+        and(eq(journalEntries.userId, event.userId), eq(journalEntries.merchant, event.merchant)),
       )
       .orderBy(desc(journalEntries.occurredAt))
       .limit(8);
@@ -81,10 +73,7 @@ export class RecurringDetector {
       .select()
       .from(recurringSeries)
       .where(
-        and(
-          eq(recurringSeries.userId, event.userId),
-          eq(recurringSeries.merchant, event.merchant),
-        ),
+        and(eq(recurringSeries.userId, event.userId), eq(recurringSeries.merchant, event.merchant)),
       );
 
     if (!existing) {

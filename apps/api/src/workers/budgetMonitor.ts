@@ -1,11 +1,5 @@
 import { db } from '../db/client';
-import {
-  budgets,
-  journalEntries,
-  postings,
-  accounts,
-  notifications,
-} from '../db/schema';
+import { budgets, journalEntries, postings, accounts, notifications } from '../db/schema';
 import { eq, and, sql, gte, lte } from 'drizzle-orm';
 import { formatCurrency } from '@vault-ledger/shared';
 import type { TransactionCreatedEvent } from './rulesEngine';
@@ -19,12 +13,7 @@ export class BudgetMonitor {
     const [budget] = await db
       .select()
       .from(budgets)
-      .where(
-        and(
-          eq(budgets.userId, event.userId),
-          eq(budgets.category, event.category),
-        ),
-      );
+      .where(and(eq(budgets.userId, event.userId), eq(budgets.category, event.category)));
 
     if (!budget) return;
 

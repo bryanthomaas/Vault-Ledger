@@ -23,23 +23,26 @@ export class DataSyncService {
    * Syncs bank transactions into the ledger with strict double-entry and idempotency guarantees.
    */
   async syncUserData(userId: string) {
-    const userAccounts = await db
-      .select()
-      .from(accounts)
-      .where(eq(accounts.userId, userId));
+    const userAccounts = await db.select().from(accounts).where(eq(accounts.userId, userId));
 
     const checkingAccount = userAccounts.find((a) => a.type === 'depository');
     const counterpartyAccount = userAccounts.find((a) => a.type === 'counterparty');
 
     if (!checkingAccount || !counterpartyAccount) {
-      throw new Error('User is missing required Checking or Counterparty account for ledger double-entry');
+      throw new Error(
+        'User is missing required Checking or Counterparty account for ledger double-entry',
+      );
     }
 
     const provider = this.getActiveProvider();
     const transactions = await provider.fetchTransactions(userId);
 
     if (transactions.length === 0) {
-      return { syncedCount: 0, skippedCount: 0, message: 'No new transactions found from provider.' };
+      return {
+        syncedCount: 0,
+        skippedCount: 0,
+        message: 'No new transactions found from provider.',
+      };
     }
 
     // Find already ingested external IDs to guarantee idempotency
@@ -48,10 +51,7 @@ export class DataSyncService {
       .select({ externalId: journalEntries.externalId })
       .from(journalEntries)
       .where(
-        and(
-          eq(journalEntries.userId, userId),
-          inArray(journalEntries.externalId, externalIds),
-        ),
+        and(eq(journalEntries.userId, userId), inArray(journalEntries.externalId, externalIds)),
       );
 
     const existingIdSet = new Set(existingEntries.map((e) => e.externalId));

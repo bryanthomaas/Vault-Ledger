@@ -87,7 +87,8 @@ export default function GoalsScreen() {
             <View style={styles.emptyCard}>
               <Text style={styles.emptyTitle}>No Savings Goals Created</Text>
               <Text style={styles.emptyDesc}>
-                Set a milestone goal (e.g. Emergency Fund or Travel Vault) to monitor accumulated transfers.
+                Set a milestone goal (e.g. Emergency Fund or Travel Vault) to monitor accumulated
+                transfers.
               </Text>
               <Button
                 title="Create First Goal"
@@ -111,7 +112,10 @@ export default function GoalsScreen() {
                         <Text style={styles.dateText}>Target Date: {g.targetDate}</Text>
                       )}
                     </View>
-                    <Badge label={`${percent}% REACHED`} variant={percent >= 100 ? 'positive' : 'accent'} />
+                    <Badge
+                      label={`${percent}% REACHED`}
+                      variant={percent >= 100 ? 'positive' : 'accent'}
+                    />
                   </View>
 
                   <View style={styles.progressTrack}>

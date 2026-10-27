@@ -28,11 +28,7 @@ interface ScrubbableChartProps {
   height?: number;
 }
 
-export const ScrubbableChart: React.FC<ScrubbableChartProps> = ({
-  data,
-  width,
-  height = 220,
-}) => {
+export const ScrubbableChart: React.FC<ScrubbableChartProps> = ({ data, width, height = 220 }) => {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
   // Compute scale boundaries
@@ -93,15 +89,21 @@ export const ScrubbableChart: React.FC<ScrubbableChartProps> = ({
         const y = chartHeight - ((p.p90Cents! - minVal) / (maxVal - minVal || 1)) * chartHeight;
         return { x: p.x, y };
       });
-      const lowerPts = [...forecastPts]
-        .reverse()
-        .map((p) => {
-          const y = chartHeight - ((p.p10Cents! - minVal) / (maxVal - minVal || 1)) * chartHeight;
-          return { x: p.x, y };
-        });
+      const lowerPts = [...forecastPts].reverse().map((p) => {
+        const y = chartHeight - ((p.p10Cents! - minVal) / (maxVal - minVal || 1)) * chartHeight;
+        return { x: p.x, y };
+      });
 
-      const upperGen = d3Shape.line<{ x: number; y: number }>().x((p) => p.x).y((p) => p.y).curve(d3Shape.curveMonotoneX);
-      const lowerGen = d3Shape.line<{ x: number; y: number }>().x((p) => p.x).y((p) => p.y).curve(d3Shape.curveMonotoneX);
+      const upperGen = d3Shape
+        .line<{ x: number; y: number }>()
+        .x((p) => p.x)
+        .y((p) => p.y)
+        .curve(d3Shape.curveMonotoneX);
+      const lowerGen = d3Shape
+        .line<{ x: number; y: number }>()
+        .x((p) => p.x)
+        .y((p) => p.y)
+        .curve(d3Shape.curveMonotoneX);
 
       band = `${upperGen(upperPts)} L ${lowerPts[0]?.x} ${lowerPts[0]?.y} ${lowerGen(lowerPts)?.replace('M', 'L')} Z`;
     }
@@ -154,10 +156,16 @@ export const ScrubbableChart: React.FC<ScrubbableChartProps> = ({
       <View style={styles.header}>
         <View>
           <Text style={styles.captionLabel}>
-            {activePoint ? (activePoint.isForecast ? 'Forecasted Net Worth' : activePoint.label) : 'Current Trajectory'}
+            {activePoint
+              ? activePoint.isForecast
+                ? 'Forecasted Net Worth'
+                : activePoint.label
+              : 'Current Trajectory'}
           </Text>
           <Text style={styles.balanceValue}>
-            {formatCurrency(activePoint ? activePoint.valueCents : (data[data.length - 1]?.valueCents ?? 0))}
+            {formatCurrency(
+              activePoint ? activePoint.valueCents : (data[data.length - 1]?.valueCents ?? 0),
+            )}
           </Text>
         </View>
 
@@ -184,9 +192,7 @@ export const ScrubbableChart: React.FC<ScrubbableChartProps> = ({
         </Defs>
 
         {/* Confidence Band (Forecast) */}
-        {forecastBandPath ? (
-          <Path d={forecastBandPath} fill="url(#bandGradient)" />
-        ) : null}
+        {forecastBandPath ? <Path d={forecastBandPath} fill="url(#bandGradient)" /> : null}
 
         {/* Gradient Fill Under Line */}
         {areaPath ? <Path d={areaPath} fill="url(#chartGradient)" /> : null}

@@ -91,8 +91,10 @@ export async function createServer() {
     try {
       await pool.query('SELECT 1');
       return reply.send({ status: 'ok', service: 'Vault Ledger API', database: 'connected' });
-    } catch (_err) {
-      return reply.status(503).send({ status: 'degraded', service: 'Vault Ledger API', database: 'disconnected' });
+    } catch {
+      return reply
+        .status(503)
+        .send({ status: 'degraded', service: 'Vault Ledger API', database: 'disconnected' });
     }
   });
 

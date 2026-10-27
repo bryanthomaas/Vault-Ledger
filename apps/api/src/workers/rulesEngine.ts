@@ -1,11 +1,6 @@
 import { db } from '../db/client';
-import {
-  rules,
-  ruleExecutions,
-  accounts,
-  notifications,
-} from '../db/schema';
-import { eq, and, sql } from 'drizzle-orm';
+import { rules, ruleExecutions, notifications } from '../db/schema';
+import { eq, and } from 'drizzle-orm';
 import { LedgerService } from '../services/ledgerService';
 import {
   calculateRoundUp,
@@ -78,10 +73,7 @@ export class RulesEngine {
         .select()
         .from(ruleExecutions)
         .where(
-          and(
-            eq(ruleExecutions.ruleId, rule.id),
-            eq(ruleExecutions.sourceEntryId, event.entryId),
-          ),
+          and(eq(ruleExecutions.ruleId, rule.id), eq(ruleExecutions.sourceEntryId, event.entryId)),
         );
 
       if (existing.length > 0) return;
@@ -150,10 +142,7 @@ export class RulesEngine {
         .select()
         .from(ruleExecutions)
         .where(
-          and(
-            eq(ruleExecutions.ruleId, rule.id),
-            eq(ruleExecutions.sourceEntryId, event.entryId),
-          ),
+          and(eq(ruleExecutions.ruleId, rule.id), eq(ruleExecutions.sourceEntryId, event.entryId)),
         );
 
       if (existing.length > 0) return;

@@ -1,8 +1,6 @@
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 import { z } from 'zod';
-import {
-  NotificationSchema,
-} from '@vault-ledger/shared';
+import { NotificationSchema } from '@vault-ledger/shared';
 import { requireAuth } from '../plugins/auth';
 import { db } from '../db/client';
 import { notifications } from '../db/schema';
@@ -62,7 +60,12 @@ export const notificationRoutes: FastifyPluginAsyncZod = async (fastify) => {
       const [updated] = await db
         .update(notifications)
         .set({ read: true })
-        .where(and(eq(notifications.id, request.params.id), eq(notifications.userId, request.user.userId)))
+        .where(
+          and(
+            eq(notifications.id, request.params.id),
+            eq(notifications.userId, request.user.userId),
+          ),
+        )
         .returning();
 
       if (!updated) {

@@ -81,7 +81,13 @@ export default function RulesScreen() {
     }
 
     createMutation.mutate({
-      name: ruleName || (ruleType === 'round_up' ? 'Coffee Round-Ups' : ruleType === 'percent_of_income' ? 'Paycheck Allocation' : 'Cash Sweep'),
+      name:
+        ruleName ||
+        (ruleType === 'round_up'
+          ? 'Coffee Round-Ups'
+          : ruleType === 'percent_of_income'
+            ? 'Paycheck Allocation'
+            : 'Cash Sweep'),
       type: ruleType,
       enabled: true,
       config,
@@ -93,9 +99,7 @@ export default function RulesScreen() {
       <View style={styles.headerRow}>
         <View>
           <Text style={styles.title}>AUTOMATION RULES</Text>
-          <Text style={styles.subtitle}>
-            Event-driven ledger workers & algorithmic transfers
-          </Text>
+          <Text style={styles.subtitle}>Event-driven ledger workers & algorithmic transfers</Text>
         </View>
 
         <Button
@@ -111,7 +115,8 @@ export default function RulesScreen() {
         <Text style={styles.infoTitle}>Deterministic Outbox Architecture</Text>
         <Text style={styles.infoText}>
           When transactions are ingested, worker threads evaluate enabled rules asynchronously.
-          Transfers are executed as atomic double-entry postings with strict idempotency constraints.
+          Transfers are executed as atomic double-entry postings with strict idempotency
+          constraints.
         </Text>
       </View>
 
@@ -126,7 +131,8 @@ export default function RulesScreen() {
 
             let description = '';
             if (isRoundUp) {
-              description = 'Rounds up everyday expenses to the nearest dollar and transfers spare change into Savings Vault.';
+              description =
+                'Rounds up everyday expenses to the nearest dollar and transfers spare change into Savings Vault.';
             } else if (isPercent) {
               const cfg = rule.config as any;
               description = `Automatically sweeps ${cfg.percentage || 10}% of any detected salary or income into Savings Vault.`;
@@ -178,7 +184,11 @@ export default function RulesScreen() {
                   style={[styles.typeBtn, ruleType === t && styles.typeBtnActive]}
                 >
                   <Text style={[styles.typeBtnText, ruleType === t && styles.typeBtnTextActive]}>
-                    {t === 'round_up' ? 'Round-Up' : t === 'percent_of_income' ? 'Income %' : 'Sweep'}
+                    {t === 'round_up'
+                      ? 'Round-Up'
+                      : t === 'percent_of_income'
+                        ? 'Income %'
+                        : 'Sweep'}
                   </Text>
                 </TouchableOpacity>
               ))}

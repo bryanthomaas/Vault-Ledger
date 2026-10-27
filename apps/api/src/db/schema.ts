@@ -40,9 +40,7 @@ export const refreshTokens = pgTable(
     expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [
-    index('refresh_tokens_user_idx').on(table.userId),
-  ],
+  (table) => [index('refresh_tokens_user_idx').on(table.userId)],
 );
 
 // ==========================================
@@ -63,9 +61,7 @@ export const accounts = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [
-    index('accounts_user_idx').on(table.userId),
-  ],
+  (table) => [index('accounts_user_idx').on(table.userId)],
 );
 
 export const journalEntries = pgTable(
@@ -126,9 +122,7 @@ export const rules = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [
-    index('rules_user_idx').on(table.userId),
-  ],
+  (table) => [index('rules_user_idx').on(table.userId)],
 );
 
 export const ruleExecutions = pgTable(
@@ -170,9 +164,7 @@ export const budgets = pgTable(
     period: varchar('period', { length: 32 }).notNull().default('monthly'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [
-    uniqueIndex('budgets_user_category_idx').on(table.userId, table.category),
-  ],
+  (table) => [uniqueIndex('budgets_user_category_idx').on(table.userId, table.category)],
 );
 
 export const goals = pgTable(
@@ -190,9 +182,7 @@ export const goals = pgTable(
     targetDate: date('target_date'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [
-    index('goals_user_idx').on(table.userId),
-  ],
+  (table) => [index('goals_user_idx').on(table.userId)],
 );
 
 // ==========================================
@@ -216,9 +206,7 @@ export const recurringSeries = pgTable(
     lastOccurredAt: timestamp('last_occurred_at', { withTimezone: true }).notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [
-    uniqueIndex('recurring_user_merchant_idx').on(table.userId, table.merchant),
-  ],
+  (table) => [uniqueIndex('recurring_user_merchant_idx').on(table.userId, table.merchant)],
 );
 
 // ==========================================
@@ -239,9 +227,7 @@ export const notifications = pgTable(
     metadata: jsonb('metadata'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [
-    index('notifications_user_idx').on(table.userId),
-  ],
+  (table) => [index('notifications_user_idx').on(table.userId)],
 );
 
 // ==========================================
@@ -257,9 +243,7 @@ export const outboxEvents = pgTable(
     processed: boolean('processed').notNull().default(false),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [
-    index('outbox_events_unprocessed_idx').on(table.processed, table.createdAt),
-  ],
+  (table) => [index('outbox_events_unprocessed_idx').on(table.processed, table.createdAt)],
 );
 
 // ==========================================

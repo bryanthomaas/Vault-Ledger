@@ -1,5 +1,12 @@
 import React from 'react';
-import { View, StyleSheet, useWindowDimensions, Text, TouchableOpacity, Platform } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  useWindowDimensions,
+  Text,
+  TouchableOpacity,
+  Platform,
+} from 'react-native';
 import { Slot } from 'expo-router';
 import { DesktopSidebar, MobileTabBar } from '../../components/AppNavigation';
 import { useAuthStore } from '../../store/authStore';

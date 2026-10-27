@@ -74,7 +74,8 @@ export class InsightsService {
 
     // Compute percentages
     for (const item of byCategory) {
-      item.percentage = totalSpentCents > 0 ? Number(((item.amountCents / totalSpentCents) * 100).toFixed(1)) : 0;
+      item.percentage =
+        totalSpentCents > 0 ? Number(((item.amountCents / totalSpentCents) * 100).toFixed(1)) : 0;
     }
     byCategory.sort((a, b) => b.amountCents - a.amountCents);
 
@@ -82,7 +83,9 @@ export class InsightsService {
     const prevSpent = Number(prevRow?.totalSpent ?? 0);
     let monthOverMonthChangePercent: number | null = null;
     if (prevSpent > 0) {
-      monthOverMonthChangePercent = Number((((totalSpentCents - prevSpent) / prevSpent) * 100).toFixed(1));
+      monthOverMonthChangePercent = Number(
+        (((totalSpentCents - prevSpent) / prevSpent) * 100).toFixed(1),
+      );
     }
 
     const periodStr = `${targetDate.getFullYear()}-${String(targetDate.getMonth() + 1).padStart(2, '0')}`;

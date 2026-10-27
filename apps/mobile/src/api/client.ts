@@ -1,8 +1,7 @@
 import { Platform } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 
-const API_BASE_URL =
-  process.env.EXPO_PUBLIC_API_URL || 'http://localhost:4000';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:4000';
 
 class StorageAdapter {
   async getItem(key: string): Promise<string | null> {
@@ -39,16 +38,17 @@ class StorageAdapter {
 export const tokenStorage = new StorageAdapter();
 
 export class ApiError extends Error {
-  constructor(public status: number, message: string, public data?: any) {
+  constructor(
+    public status: number,
+    message: string,
+    public data?: any,
+  ) {
     super(message);
     this.name = 'ApiError';
   }
 }
 
-export async function apiRequest<T = any>(
-  endpoint: string,
-  options: RequestInit = {},
-): Promise<T> {
+export async function apiRequest<T = any>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const url = `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
   const accessToken = await tokenStorage.getItem('vault_access_token');
 

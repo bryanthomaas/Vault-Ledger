@@ -1,0 +1,11 @@
+node_modules
+.git
+.github
+dist
+.expo
+.next
+coverage
+*.log
+.DS_Store
+Thumbs.db
+apps/mobile

@@ -1,9 +1,6 @@
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 import { z } from 'zod';
-import {
-  RuleSchema,
-  CreateRuleInputSchema,
-} from '@vault-ledger/shared';
+import { RuleSchema, CreateRuleInputSchema } from '@vault-ledger/shared';
 import { requireAuth } from '../plugins/auth';
 import { db } from '../db/client';
 import { rules } from '../db/schema';

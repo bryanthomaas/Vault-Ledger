@@ -44,10 +44,7 @@ export const Button: React.FC<ButtonProps> = ({
       ]}
     >
       {loading ? (
-        <ActivityIndicator
-          size="small"
-          color={variant === 'primary' ? '#000' : colors.accent}
-        />
+        <ActivityIndicator size="small" color={variant === 'primary' ? '#000' : colors.accent} />
       ) : (
         <Text style={[styles.text, styles[`${variant}Text`], textStyle]}>{title}</Text>
       )}

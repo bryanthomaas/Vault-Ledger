@@ -1,13 +1,10 @@
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 import { z } from 'zod';
-import {
-  GoalSchema,
-  CreateGoalInputSchema,
-} from '@vault-ledger/shared';
+import { GoalSchema, CreateGoalInputSchema } from '@vault-ledger/shared';
 import { requireAuth } from '../plugins/auth';
 import { db } from '../db/client';
 import { goals, accounts, postings } from '../db/schema';
-import { eq, and, sql } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 
 export const goalRoutes: FastifyPluginAsyncZod = async (fastify) => {
   fastify.addHook('preHandler', requireAuth);

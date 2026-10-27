@@ -81,7 +81,8 @@ export default function LoginScreen() {
               <Text style={styles.demoTitle}>Recruiter & Reviewer Sandbox</Text>
             </View>
             <Text style={styles.demoDesc}>
-              Instant access with 18 months of seeded double-entry transactions, active savings rules, and Monte Carlo forecast.
+              Instant access with 18 months of seeded double-entry transactions, active savings
+              rules, and Monte Carlo forecast.
             </Text>
             <Button
               title="Launch Live Demo Sandbox →"

@@ -63,7 +63,9 @@ export class AuthService {
     return rawToken;
   }
 
-  async rotateRefreshToken(rawToken: string): Promise<{ accessToken: string; refreshToken: string; user: User }> {
+  async rotateRefreshToken(
+    rawToken: string,
+  ): Promise<{ accessToken: string; refreshToken: string; user: User }> {
     const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
 
     const [tokenRecord] = await this.database
@@ -118,8 +120,13 @@ export class AuthService {
   /**
    * Registers a new user and creates default ledger accounts and rules.
    */
-  async register(input: RegisterInput): Promise<{ user: User; accessToken: string; refreshToken: string }> {
-    const existing = await this.database.select().from(users).where(eq(users.email, input.email.toLowerCase()));
+  async register(
+    input: RegisterInput,
+  ): Promise<{ user: User; accessToken: string; refreshToken: string }> {
+    const existing = await this.database
+      .select()
+      .from(users)
+      .where(eq(users.email, input.email.toLowerCase()));
     if (existing.length > 0) {
       throw new Error('A user with this email already exists');
     }
@@ -220,7 +227,9 @@ export class AuthService {
     });
   }
 
-  async login(input: LoginInput): Promise<{ user: User; accessToken: string; refreshToken: string }> {
+  async login(
+    input: LoginInput,
+  ): Promise<{ user: User; accessToken: string; refreshToken: string }> {
     const [userRecord] = await this.database
       .select()
       .from(users)

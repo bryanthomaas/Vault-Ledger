@@ -23,7 +23,7 @@ export function toCents(amount: number | string): Cents {
   }
 
   const isNegative = raw.startsWith('-') || raw.startsWith('(');
-  const clean = raw.replace(/[$,()\-]/g, '').trim();
+  const clean = raw.replace(/[$,()-]/g, '').trim();
 
   if (!clean || isNaN(Number(clean))) {
     throw new TypeError(`Cannot parse invalid monetary string: "${amount}"`);
@@ -94,7 +94,9 @@ export function calculateRoundUp(amountCents: Cents): Cents {
  * Verifies the fundamental invariant of double-entry bookkeeping:
  * The sum of all postings in an entry must equal 0.
  */
-export function verifyDoubleEntryBalance(postings: Array<{ amountCents: Cents | bigint }>): boolean {
+export function verifyDoubleEntryBalance(
+  postings: Array<{ amountCents: Cents | bigint }>,
+): boolean {
   if (postings.length < 2) return false;
   const sum = postings.reduce((acc, p) => acc + BigInt(p.amountCents), 0n);
   return sum === 0n;

@@ -1,11 +1,6 @@
 import { eq, and, sql, desc, inArray, gte, lte } from 'drizzle-orm';
 import { db, type AppDatabase } from '../db/client';
-import {
-  journalEntries,
-  postings,
-  accounts,
-  outboxEvents,
-} from '../db/schema';
+import { journalEntries, postings, accounts, outboxEvents } from '../db/schema';
 import {
   verifyDoubleEntryBalance,
   type Cents,

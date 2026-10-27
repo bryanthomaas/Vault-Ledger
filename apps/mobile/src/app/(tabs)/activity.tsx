@@ -149,12 +149,7 @@ export default function ActivityScreen() {
               onPress={() => setSelectedFilter(f.key)}
               style={[styles.filterChip, isActive && styles.filterChipActive]}
             >
-              <Text
-                style={[
-                  styles.filterChipText,
-                  isActive && styles.filterChipTextActive,
-                ]}
-              >
+              <Text style={[styles.filterChipText, isActive && styles.filterChipTextActive]}>
                 {f.label}
               </Text>
             </TouchableOpacity>
@@ -191,10 +186,7 @@ export default function ActivityScreen() {
                     markReadMutation.mutate(item.id);
                   }
                 }}
-                style={[
-                  styles.card,
-                  !item.read && styles.cardUnread,
-                ]}
+                style={[styles.card, !item.read && styles.cardUnread]}
               >
                 <View style={styles.cardHeader}>
                   <View style={styles.typeBadgeRow}>

@@ -1,9 +1,6 @@
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 import { z } from 'zod';
-import {
-  SpendingInsightsSchema,
-  ForecastResponseSchema,
-} from '@vault-ledger/shared';
+import { SpendingInsightsSchema, ForecastResponseSchema } from '@vault-ledger/shared';
 import { requireAuth } from '../plugins/auth';
 import { InsightsService } from '../services/insightsService';
 import { ForecastingService } from '../services/forecastingService';
@@ -61,7 +58,8 @@ export const insightsRoutes: FastifyPluginAsyncZod = async (fastify) => {
     {
       schema: {
         tags: ['Insights & Forecasting'],
-        summary: 'Generate 6-month Monte Carlo predictive net worth forecast with p10/p50/p90 confidence bands',
+        summary:
+          'Generate 6-month Monte Carlo predictive net worth forecast with p10/p50/p90 confidence bands',
         response: {
           200: ForecastResponseSchema,
         },

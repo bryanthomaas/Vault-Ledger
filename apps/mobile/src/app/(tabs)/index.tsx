@@ -17,7 +17,12 @@ import { StatBlock } from '../../components/StatBlock';
 import { Badge } from '../../components/Badge';
 import { HairlineDivider } from '../../components/HairlineDivider';
 import { Button } from '../../components/Button';
-import { formatCurrency, type Account, type TransactionView, type ForecastResponse } from '@vault-ledger/shared';
+import {
+  formatCurrency,
+  type Account,
+  type TransactionView,
+  type ForecastResponse,
+} from '@vault-ledger/shared';
 import { useRouter } from 'expo-router';
 
 export default function DashboardScreen() {
@@ -33,7 +38,9 @@ export default function DashboardScreen() {
   });
 
   // Fetch 12-month net worth history
-  const historyQuery = useQuery<Array<{ month: string; netWorthCents: number; incomeCents: number; expenseCents: number }>>({
+  const historyQuery = useQuery<
+    Array<{ month: string; netWorthCents: number; incomeCents: number; expenseCents: number }>
+  >({
     queryKey: ['insights', 'history'],
     queryFn: () => apiRequest('/api/insights/history'),
   });
@@ -197,7 +204,9 @@ export default function DashboardScreen() {
               onPress={() => setChartMode('forecast')}
               style={[styles.toggleBtn, chartMode === 'forecast' && styles.toggleBtnActive]}
             >
-              <Text style={[styles.toggleText, chartMode === 'forecast' && styles.toggleTextActive]}>
+              <Text
+                style={[styles.toggleText, chartMode === 'forecast' && styles.toggleTextActive]}
+              >
                 Monte Carlo (6M)
               </Text>
             </TouchableOpacity>
@@ -278,12 +287,7 @@ export default function DashboardScreen() {
                       </Text>
                     </View>
                   </View>
-                  <Text
-                    style={[
-                      styles.txAmount,
-                      isIncome ? styles.txIncome : styles.txExpense,
-                    ]}
-                  >
+                  <Text style={[styles.txAmount, isIncome ? styles.txIncome : styles.txExpense]}>
                     {formatCurrency(tx.amountCents, { showSign: true })}
                   </Text>
                 </View>

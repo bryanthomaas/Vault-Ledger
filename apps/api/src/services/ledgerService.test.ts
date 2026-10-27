@@ -19,7 +19,7 @@ describe('LedgerService (unit)', () => {
         description: 'Unbalanced purchase',
         postings: [
           { accountId: accountId1, amountCents: -500 }, // $5 spent
-          { accountId: accountId2, amountCents: 400 },  // only $4 accounted for!
+          { accountId: accountId2, amountCents: 400 }, // only $4 accounted for!
         ],
       }),
     ).rejects.toThrow(UnbalancedJournalEntryError);
@@ -85,7 +85,7 @@ describe('LedgerService (unit)', () => {
       category: 'Coffee',
       postings: [
         { accountId: accountId1, amountCents: -450 }, // -4.50 from Checking
-        { accountId: accountId2, amountCents: 450 },  // +4.50 to Merchant
+        { accountId: accountId2, amountCents: 450 }, // +4.50 to Merchant
       ],
     });
 

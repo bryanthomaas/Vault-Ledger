@@ -158,10 +158,7 @@ export default function BudgetsScreen() {
                 <TouchableOpacity
                   key={c}
                   onPress={() => setSelectedCategory(c)}
-                  style={[
-                    styles.catChoice,
-                    selectedCategory === c && styles.catChoiceActive,
-                  ]}
+                  style={[styles.catChoice, selectedCategory === c && styles.catChoiceActive]}
                 >
                   <Text
                     style={[

@@ -1,13 +1,16 @@
 import { db, type AppDatabase } from '../db/client';
 import { recurringSeries, journalEntries, postings, accounts } from '../db/schema';
-import { eq, and, gte, inArray, sql } from 'drizzle-orm';
+import { eq, and, gte, sql } from 'drizzle-orm';
 import { LedgerService } from './ledgerService';
 import type { ForecastResponse, ForecastPoint } from '@vault-ledger/shared';
 
 export class ForecastingService {
   private ledgerService: LedgerService;
 
-  constructor(private database: AppDatabase = db, ledger?: LedgerService) {
+  constructor(
+    private database: AppDatabase = db,
+    ledger?: LedgerService,
+  ) {
     this.ledgerService = ledger ?? new LedgerService(this.database);
   }
 
@@ -68,7 +71,10 @@ export class ForecastingService {
     let stdDevSpendCents = 2500;
 
     if (variableRows.length > 10) {
-      const totalVariable = variableRows.reduce((sum: number, r: { amountCents: any }) => sum + Math.abs(Number(r.amountCents)), 0);
+      const totalVariable = variableRows.reduce(
+        (sum: number, r: { amountCents: any }) => sum + Math.abs(Number(r.amountCents)),
+        0,
+      );
       meanDailySpendCents = Math.round(totalVariable / 90);
       // Standard deviation of daily spending
       stdDevSpendCents = Math.round(meanDailySpendCents * 0.45);
@@ -107,7 +113,8 @@ export class ForecastingService {
     const points: ForecastPoint[] = [];
     const now = new Date();
     let baselineAccumulator = currentNetWorthCents;
-    const expectedMonthlyDelta = monthlyFixedIncomeCents - monthlyFixedExpensesCents - variableMonthlyVelocityCents;
+    const expectedMonthlyDelta =
+      monthlyFixedIncomeCents - monthlyFixedExpensesCents - variableMonthlyVelocityCents;
 
     for (let m = 0; m < months; m++) {
       const monthDate = new Date(now.getFullYear(), now.getMonth() + m + 1, 1);

@@ -31,25 +31,42 @@ export class SyntheticDataProvider implements DataProvider {
     let dayCount = 0;
 
     while (cursor <= now) {
-      const year = cursor.getFullYear();
       const month = cursor.getMonth();
       const date = cursor.getDate();
       const dayOfWeek = cursor.getDay(); // 0 is Sunday, 5 is Friday
 
       // 1. Bi-weekly Payroll on Friday ($3,450.00 = +345000 cents)
       if (dayOfWeek === 5 && Math.floor(dayCount / 7) % 2 === 0) {
-        addTx(new Date(cursor), 'Direct Deposit - Tech Corp Payroll', 'Tech Corp', 'Salary', 345000);
+        addTx(
+          new Date(cursor),
+          'Direct Deposit - Tech Corp Payroll',
+          'Tech Corp',
+          'Salary',
+          345000,
+        );
       }
 
       // 2. Monthly Rent on the 1st ($1,650.00 = -165000 cents)
       if (date === 1) {
-        addTx(new Date(cursor), 'Rent Payment - Avalon Residences', 'Avalon Properties', 'Housing', -165000);
+        addTx(
+          new Date(cursor),
+          'Rent Payment - Avalon Residences',
+          'Avalon Properties',
+          'Housing',
+          -165000,
+        );
       }
 
       // 3. Monthly Utilities on the 5th (~$95 - $130)
       if (date === 5) {
         const utilAmount = 9500 + ((month * 17) % 3500); // seasonal variation
-        addTx(new Date(cursor), 'Electric & Gas Utility Bill', 'Con Edison', 'Utilities', -utilAmount);
+        addTx(
+          new Date(cursor),
+          'Electric & Gas Utility Bill',
+          'Con Edison',
+          'Utilities',
+          -utilAmount,
+        );
       }
 
       // 4. Fixed Subscriptions
