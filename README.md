@@ -2,6 +2,10 @@
 
 > Production-grade personal finance platform engineered with a strict double-entry ledger, event-driven automation rules engine, recurring subscription detection, and 6-month Monte Carlo predictive forecasting.
 
+<p align="center">
+  <img src="screenshots/login-screen.png" alt="Vault Ledger Interface Preview" width="800" style="border-radius: 8px;" />
+</p>
+
 ---
 
 ## System Overview
