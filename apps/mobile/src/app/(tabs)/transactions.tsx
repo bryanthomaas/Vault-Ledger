@@ -61,7 +61,13 @@ export default function TransactionsScreen() {
     },
   });
 
-  const filtered = (transactionsQuery.data?.transactions || []).filter((tx) => {
+  const rawTransactions = Array.isArray(transactionsQuery.data?.transactions)
+    ? transactionsQuery.data.transactions
+    : Array.isArray(transactionsQuery.data)
+    ? (transactionsQuery.data as any)
+    : [];
+
+  const filtered = rawTransactions.filter((tx: TransactionView) => {
     if (!search) return true;
     const query = search.toLowerCase();
     return (

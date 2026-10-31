@@ -29,6 +29,7 @@ export default function LoginScreen() {
     try {
       setLoading(true);
       await login({ email, password });
+      router.replace('/(tabs)/');
     } catch (_err) {
       // Error handled by store
     } finally {
@@ -40,6 +41,7 @@ export default function LoginScreen() {
     try {
       setDemoLoading(true);
       await loginDemo();
+      router.replace('/(tabs)/');
     } catch (_err) {
       // Error handled by store
     } finally {
@@ -186,7 +188,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   brandBadgeText: {
-    color: '#090A0C',
+    color: '#FFFFFF',
     fontWeight: '800',
     fontSize: 16,
     fontFamily: typography.fontFamilyMono,
@@ -217,7 +219,7 @@ const styles = StyleSheet.create({
   demoBox: {
     backgroundColor: colors.surfaceSubtle,
     borderWidth: 1,
-    borderColor: 'rgba(0, 210, 224, 0.25)',
+    borderColor: colors.accentSubtle,
     borderRadius: 8,
     padding: spacing.md,
     marginBottom: spacing.lg,
@@ -285,7 +287,7 @@ const styles = StyleSheet.create({
   errorBox: {
     backgroundColor: colors.negativeSubtle,
     borderWidth: 1,
-    borderColor: 'rgba(244, 63, 94, 0.3)',
+    borderColor: colors.negativeSubtle,
     borderRadius: 6,
     padding: 10,
     marginBottom: spacing.md,

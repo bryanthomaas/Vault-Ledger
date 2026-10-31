@@ -1,33 +1,40 @@
 import { Platform } from 'react-native';
 
 export const colors = {
-  // Deep editorial dark canvas
-  background: '#090A0C',
-  canvas: '#090A0C',
+  // Deep organic dark wood & earthy timber canvas
+  background: '#14110F',
+  canvas: '#14110F',
 
-  // Surfaces: restrained, low contrast
-  surface: '#111317',
-  surfaceSubtle: '#16191F',
-  surfaceHighlight: '#1F232B',
+  // Surfaces: Warm earthenware ceramic & stoneware clay
+  surface: '#1F1A16',
+  surfaceSubtle: '#26201B',
+  surfaceHighlight: '#332B24',
 
-  // Hairline borders
-  border: 'rgba(255, 255, 255, 0.08)',
-  borderStrong: 'rgba(255, 255, 255, 0.16)',
+  // Wood & Sand Tones
+  woodGrain: '#2B231C',
+  woodDark: '#191410',
+  sand: '#EAE1D6',
+  sandSubtle: '#B8ABA0',
+  sandMuted: '#6B6055',
 
-  // Typography
-  textPrimary: '#F4F5F6',
-  textSecondary: '#8E95A2',
-  textTertiary: '#5A6270',
+  // Hairline borders with warm sandy ceramic tone
+  border: 'rgba(234, 225, 214, 0.12)',
+  borderStrong: 'rgba(234, 225, 214, 0.24)',
 
-  // Refined functional accents (WCAG AA compliant)
-  accent: '#00D2E0', // Calm, elegant cyan
-  accentSubtle: 'rgba(0, 210, 224, 0.12)',
-  positive: '#10B981', // Emerald
-  positiveSubtle: 'rgba(16, 185, 129, 0.12)',
-  negative: '#F43F5E', // Rose
-  negativeSubtle: 'rgba(244, 63, 94, 0.12)',
-  warning: '#F59E0B',
-  warningSubtle: 'rgba(245, 158, 11, 0.12)',
+  // Typography - Warm ceramic bone and desert linen
+  textPrimary: '#FAF6F0',
+  textSecondary: '#C5B9AC',
+  textTertiary: '#7E7266',
+
+  // Lush Botanical & Forest Green Accents
+  accent: '#2EAE60', // Deep botanical emerald / forest moss
+  accentSubtle: 'rgba(46, 174, 96, 0.16)',
+  positive: '#22C55E', // Lush leaf green
+  positiveSubtle: 'rgba(34, 197, 94, 0.16)',
+  negative: '#E25C50', // Earthy terracotta clay
+  negativeSubtle: 'rgba(226, 92, 80, 0.16)',
+  warning: '#E09B3D', // Warm amber resin
+  warningSubtle: 'rgba(224, 155, 61, 0.16)',
 };
 
 export const typography = {

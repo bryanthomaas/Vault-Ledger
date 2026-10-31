@@ -329,7 +329,7 @@ const styles = StyleSheet.create({
   },
   cardUnread: {
     borderColor: colors.accent,
-    backgroundColor: '#0E161B',
+    backgroundColor: '#1C241D',
   },
   cardHeader: {
     flexDirection: 'row',
@@ -352,7 +352,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   unreadDotText: {
-    color: '#090A0C',
+    color: '#FFFFFF',
     fontSize: 9,
     fontWeight: '800',
     fontFamily: typography.fontFamilyMono,

@@ -64,18 +64,22 @@ export default function TabsLayout() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    minHeight: Platform.OS === 'web' ? ('100vh' as any) : '100%',
     backgroundColor: colors.background,
   },
   desktopLayout: {
     flex: 1,
+    minHeight: Platform.OS === 'web' ? ('100vh' as any) : '100%',
     flexDirection: 'row',
   },
   desktopContent: {
     flex: 1,
+    minHeight: Platform.OS === 'web' ? ('100vh' as any) : '100%',
     backgroundColor: colors.background,
   },
   mobileLayout: {
     flex: 1,
+    minHeight: Platform.OS === 'web' ? ('100vh' as any) : '100%',
     flexDirection: 'column',
   },
   mobileContent: {

@@ -20,7 +20,7 @@ export default defineConfig({
     env: {
       PORT: '8199',
     },
-    reuseExistingServer: false,
+    reuseExistingServer: true,
     timeout: 15000,
   },
   projects: [

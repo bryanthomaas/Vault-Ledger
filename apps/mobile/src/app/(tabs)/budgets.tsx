@@ -59,7 +59,7 @@ export default function BudgetsScreen() {
     });
   };
 
-  const budgetsList = budgetsQuery.data || [];
+  const budgetsList = Array.isArray(budgetsQuery.data) ? budgetsQuery.data : [];
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>

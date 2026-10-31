@@ -124,7 +124,7 @@ export default function RulesScreen() {
         <ActivityIndicator color={colors.accent} size="large" style={{ marginTop: 40 }} />
       ) : (
         <View style={styles.rulesList}>
-          {rulesQuery.data?.map((rule) => {
+          {(Array.isArray(rulesQuery.data) ? rulesQuery.data : []).map((rule) => {
             const isRoundUp = rule.type === 'round_up';
             const isPercent = rule.type === 'percent_of_income';
             const isSweep = rule.type === 'sweep';

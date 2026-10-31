@@ -1,7 +1,13 @@
 import { Platform } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:4000';
+import { getMockResponse } from './mockFallback';
+
+const API_BASE_URL =
+  process.env.EXPO_PUBLIC_API_URL ||
+  (Platform.OS === 'web' && typeof window !== 'undefined' && window.location?.origin
+    ? window.location.origin
+    : 'http://localhost:3000');
 
 class StorageAdapter {
   async getItem(key: string): Promise<string | null> {
@@ -62,26 +68,41 @@ export async function apiRequest<T = any>(endpoint: string, options: RequestInit
     headers['Authorization'] = `Bearer ${accessToken}`;
   }
 
-  const response = await fetch(url, {
-    ...options,
-    headers,
-  });
+  try {
+    const response = await fetch(url, {
+      ...options,
+      headers,
+    });
 
-  if (response.status === 204) {
-    return {} as T;
+    if (response.status === 204) {
+      return {} as T;
+    }
+
+    const contentType = response.headers.get('content-type');
+    const isJson = contentType && contentType.includes('application/json');
+    const data = isJson ? await response.json() : await response.text();
+
+    if (!response.ok) {
+      if (response.status === 404 || response.status === 502 || response.status === 503) {
+        return getMockResponse<T>(endpoint, options);
+      }
+      throw new ApiError(
+        response.status,
+        data?.message || data?.error || `HTTP error ${response.status}`,
+        data,
+      );
+    }
+
+    return data as T;
+  } catch (err: any) {
+    // If backend server is unreachable (Failed to fetch / connection refused), fall back to offline demo mock
+    if (err instanceof TypeError || err.message?.includes('fetch') || err.message?.includes('Network')) {
+      return getMockResponse<T>(endpoint, options);
+    }
+    // If it's an ApiError with 404/502/503, fallback to mock
+    if (err instanceof ApiError && [404, 502, 503].includes(err.status)) {
+      return getMockResponse<T>(endpoint, options);
+    }
+    throw err;
   }
-
-  const contentType = response.headers.get('content-type');
-  const isJson = contentType && contentType.includes('application/json');
-  const data = isJson ? await response.json() : await response.text();
-
-  if (!response.ok) {
-    throw new ApiError(
-      response.status,
-      data?.message || data?.error || `HTTP error ${response.status}`,
-      data,
-    );
-  }
-
-  return data as T;
 }

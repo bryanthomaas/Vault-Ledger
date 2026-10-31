@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   logoBadgeText: {
-    color: '#090A0C',
+    color: '#FFFFFF',
     fontWeight: '800',
     fontSize: 14,
     fontFamily: typography.fontFamilyMono,

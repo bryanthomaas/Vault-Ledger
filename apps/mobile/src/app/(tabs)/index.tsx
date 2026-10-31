@@ -82,7 +82,7 @@ export default function DashboardScreen() {
   // Prepare chart dataset
   const chartData: ChartDataPoint[] = useMemo(() => {
     if (chartMode === 'history') {
-      const history = historyQuery.data || [];
+      const history = Array.isArray(historyQuery.data) ? historyQuery.data : [];
       if (history.length === 0) {
         return [
           { date: '2025-01', label: 'Jan', valueCents: 11000000 },
@@ -234,7 +234,7 @@ export default function DashboardScreen() {
           </View>
 
           <View style={styles.accountsList}>
-            {accountsQuery.data?.map((acc) => (
+            {(Array.isArray(accountsQuery.data) ? accountsQuery.data : []).map((acc) => (
               <View key={acc.id} style={styles.accountRow}>
                 <View style={styles.accountInfo}>
                   <Text style={styles.accountName}>{acc.name}</Text>
@@ -266,7 +266,12 @@ export default function DashboardScreen() {
           </View>
 
           <View style={styles.transactionsList}>
-            {transactionsQuery.data?.transactions.map((tx) => {
+            {(Array.isArray(transactionsQuery.data?.transactions)
+              ? transactionsQuery.data.transactions
+              : Array.isArray(transactionsQuery.data)
+              ? (transactionsQuery.data as any)
+              : []
+            ).slice(0, 6).map((tx: TransactionView) => {
               const isIncome = tx.amountCents > 0;
               return (
                 <View key={tx.id} style={styles.transactionRow}>

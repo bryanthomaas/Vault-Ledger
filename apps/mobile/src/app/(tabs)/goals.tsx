@@ -59,7 +59,7 @@ export default function GoalsScreen() {
     });
   };
 
-  const goalsList = goalsQuery.data || [];
+  const goalsList = Array.isArray(goalsQuery.data) ? goalsQuery.data : [];
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>

@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accent,
   },
   primaryText: {
-    color: '#090A0C',
+    color: '#FFFFFF',
     fontWeight: '700',
     fontSize: 15,
   },
