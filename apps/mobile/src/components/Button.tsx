@@ -7,7 +7,7 @@ import {
   type ViewStyle,
   type TextStyle,
 } from 'react-native';
-import { colors, typography } from '../theme/tokens';
+import { colors, leafRadius } from '../theme/tokens';
 
 interface ButtonProps {
   title: string;
@@ -18,6 +18,7 @@ interface ButtonProps {
   disabled?: boolean;
   style?: ViewStyle;
   textStyle?: TextStyle;
+  icon?: React.ReactNode;
 }
 
 export const Button: React.FC<ButtonProps> = ({
@@ -29,12 +30,13 @@ export const Button: React.FC<ButtonProps> = ({
   disabled = false,
   style,
   textStyle,
+  icon,
 }) => {
   return (
     <TouchableOpacity
       onPress={onPress}
       disabled={disabled || loading}
-      activeOpacity={0.8}
+      activeOpacity={0.82}
       style={[
         styles.base,
         styles[variant],
@@ -44,9 +46,12 @@ export const Button: React.FC<ButtonProps> = ({
       ]}
     >
       {loading ? (
-        <ActivityIndicator size="small" color={variant === 'primary' ? '#000' : colors.accent} />
+        <ActivityIndicator size="small" color={variant === 'primary' ? '#FFFFFF' : colors.accent} />
       ) : (
-        <Text style={[styles.text, styles[`${variant}Text`], textStyle]}>{title}</Text>
+        <>
+          {icon && <span style={{ display: 'inline-flex', marginRight: 8, alignItems: 'center' }}>{icon}</span>}
+          <Text style={[styles.text, styles[`${variant}Text`], textStyle]}>{title}</Text>
+        </>
       )}
     </TouchableOpacity>
   );
@@ -61,28 +66,36 @@ const styles = StyleSheet.create({
   },
   sm: {
     paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
   },
   md: {
     paddingVertical: 12,
-    paddingHorizontal: 16,
+    paddingHorizontal: 18,
   },
   lg: {
     paddingVertical: 14,
-    paddingHorizontal: 24,
+    paddingHorizontal: 26,
   },
   primary: {
     backgroundColor: colors.accent,
+    ...leafRadius.asymmetric,
+    shadowColor: '#285430',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.18,
+    shadowRadius: 10,
+    elevation: 3,
   },
   primaryText: {
     color: '#FFFFFF',
     fontWeight: '700',
     fontSize: 15,
+    letterSpacing: 0.2,
   },
   secondary: {
-    backgroundColor: colors.surfaceHighlight,
+    backgroundColor: colors.surfaceSubtle,
     borderWidth: 1,
     borderColor: colors.borderStrong,
+    borderRadius: 10,
   },
   secondaryText: {
     color: colors.textPrimary,
@@ -91,11 +104,12 @@ const styles = StyleSheet.create({
   },
   outline: {
     backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
+    borderWidth: 1.25,
+    borderColor: 'rgba(40, 84, 48, 0.3)',
+    borderRadius: 10,
   },
   outlineText: {
-    color: colors.textPrimary,
+    color: colors.accent,
     fontWeight: '600',
     fontSize: 15,
   },
@@ -105,12 +119,12 @@ const styles = StyleSheet.create({
   ghostText: {
     color: colors.textSecondary,
     fontWeight: '500',
-    fontSize: 14,
+    fontSize: 15,
+  },
+  text: {
+    textAlign: 'center',
   },
   disabled: {
     opacity: 0.5,
-  },
-  text: {
-    fontFamily: typography.fontFamily,
   },
 });

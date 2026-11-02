@@ -8,15 +8,17 @@ import {
   useWindowDimensions,
   ActivityIndicator,
   RefreshControl,
+  Image,
 } from 'react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '../../api/client';
-import { colors, typography, spacing } from '../../theme/tokens';
+import { colors, typography, spacing, leafRadius } from '../../theme/tokens';
 import { ScrubbableChart, type ChartDataPoint } from '../../components/ScrubbableChart';
 import { StatBlock } from '../../components/StatBlock';
 import { Badge } from '../../components/Badge';
 import { HairlineDivider } from '../../components/HairlineDivider';
 import { Button } from '../../components/Button';
+import { IconSync } from '../../components/Icons';
 import {
   formatCurrency,
   type Account,
@@ -69,15 +71,18 @@ export default function DashboardScreen() {
   });
 
   const totalNetWorthCents = useMemo(() => {
-    if (!accountsQuery.data) return 0;
+    if (!accountsQuery.data || !Array.isArray(accountsQuery.data)) return 0;
     return accountsQuery.data
       .filter((a) => a.type !== 'counterparty')
       .reduce((sum, a) => sum + a.balanceCents, 0);
   }, [accountsQuery.data]);
 
-  const checkingAccount = accountsQuery.data?.find((a) => a.type === 'depository');
-  const vaultAccount = accountsQuery.data?.find((a) => a.type === 'vault');
-  const creditAccount = accountsQuery.data?.find((a) => a.type === 'credit');
+  const checkingAccount = Array.isArray(accountsQuery.data)
+    ? accountsQuery.data.find((a) => a.type === 'depository')
+    : undefined;
+  const vaultAccount = Array.isArray(accountsQuery.data)
+    ? accountsQuery.data.find((a) => a.type === 'vault')
+    : undefined;
 
   // Prepare chart dataset
   const chartData: ChartDataPoint[] = useMemo(() => {
@@ -98,7 +103,7 @@ export default function DashboardScreen() {
       }));
     } else {
       const forecast = forecastQuery.data;
-      if (!forecast || forecast.points.length === 0) return [];
+      if (!forecast || !Array.isArray(forecast.points) || forecast.points.length === 0) return [];
 
       const current = {
         date: 'Current',
@@ -124,7 +129,6 @@ export default function DashboardScreen() {
   }, [chartMode, historyQuery.data, forecastQuery.data]);
 
   const chartWidth = Math.min(width - (width >= 768 ? 280 : 40), 960);
-
   const isLoading = accountsQuery.isLoading || historyQuery.isLoading;
 
   return (
@@ -153,12 +157,33 @@ export default function DashboardScreen() {
 
         <View style={styles.actionsRow}>
           <Button
-            title={syncMutation.isPending ? 'Syncing...' : '↻ Sync Data'}
+            title={syncMutation.isPending ? 'Syncing...' : 'Sync Data'}
+            icon={<IconSync size={14} color={colors.accent} />}
             onPress={() => syncMutation.mutate()}
             variant="outline"
             size="sm"
             loading={syncMutation.isPending}
           />
+        </View>
+      </View>
+
+      {/* Ambient Real Nature Photography Card */}
+      <View style={styles.ambientBannerCard}>
+        <Image
+          source={require('../../../assets/images/dashboard-nature-banner.jpg')}
+          style={styles.ambientBannerImage}
+          resizeMode="cover"
+        />
+        <View style={styles.ambientBannerOverlay}>
+          <View style={styles.ambientBadge}>
+            <Text style={styles.ambientBadgeText}>SOVEREIGN RESERVE VAULT</Text>
+          </View>
+          <Text style={styles.ambientBannerTitle}>
+            Verifiable Double-Entry Engineering & Natural Wealth Balance
+          </Text>
+          <Text style={styles.ambientBannerDesc}>
+            Atomic ledger postings with deterministic rule sweeps and Monte Carlo forecasting.
+          </Text>
         </View>
       </View>
 
@@ -323,21 +348,73 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   pageTitle: {
-    fontSize: 18,
-    fontWeight: '800',
+    fontSize: 22,
+    fontWeight: '700',
     color: colors.textPrimary,
-    letterSpacing: 1.2,
-    fontFamily: typography.fontFamily,
+    letterSpacing: -0.3,
+    fontFamily: typography.fontFamilySerif,
   },
   pageSubtitle: {
     fontSize: 12,
-    color: colors.textTertiary,
+    color: colors.textSecondary,
     fontFamily: typography.fontFamilyMono,
     marginTop: 2,
   },
   actionsRow: {
     flexDirection: 'row',
     gap: 8,
+  },
+  ambientBannerCard: {
+    width: '100%',
+    height: 120,
+    borderRadius: 14,
+    overflow: 'hidden',
+    marginBottom: spacing.lg,
+    position: 'relative',
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+  },
+  ambientBannerImage: {
+    width: '100%',
+    height: '100%',
+    position: 'absolute',
+  },
+  ambientBannerOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(26, 22, 18, 0.55)',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    justifyContent: 'center',
+  },
+  ambientBadge: {
+    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+    alignSelf: 'flex-start',
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+    borderRadius: 4,
+    marginBottom: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.25)',
+  },
+  ambientBadgeText: {
+    color: '#FAF6F0',
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    fontFamily: typography.fontFamilyMono,
+  },
+  ambientBannerTitle: {
+    color: '#FFFFFF',
+    fontSize: 17,
+    fontWeight: '700',
+    fontFamily: typography.fontFamilySerif,
+    letterSpacing: -0.2,
+  },
+  ambientBannerDesc: {
+    color: '#EAE1D5',
+    fontSize: 12,
+    marginTop: 2,
+    fontFamily: typography.fontFamily,
   },
   statsGrid: {
     flexDirection: 'row',
@@ -349,9 +426,13 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 12,
+    borderRadius: 14,
     padding: spacing.lg,
     marginBottom: spacing.lg,
+    shadowColor: '#2D261E',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 12,
   },
   chartControlRow: {
     flexDirection: 'row',
@@ -361,34 +442,36 @@ const styles = StyleSheet.create({
   },
   sectionHeader: {
     fontSize: 11,
-    fontFamily: typography.fontFamilyMono,
+    fontFamily: typography.fontFamily,
     color: colors.textSecondary,
+    fontWeight: '700',
     letterSpacing: 0.8,
   },
   toggleGroup: {
     flexDirection: 'row',
-    backgroundColor: colors.surfaceHighlight,
-    borderRadius: 6,
-    padding: 2,
+    backgroundColor: colors.surfaceSubtle,
+    borderRadius: 8,
+    padding: 3,
     borderWidth: 1,
     borderColor: colors.border,
   },
   toggleBtn: {
     paddingVertical: 5,
-    paddingHorizontal: 10,
-    borderRadius: 4,
+    paddingHorizontal: 12,
+    borderRadius: 6,
   },
   toggleBtnActive: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.accent,
   },
   toggleText: {
     fontSize: 11,
     color: colors.textTertiary,
-    fontFamily: typography.fontFamilyMono,
+    fontFamily: typography.fontFamily,
+    fontWeight: '500',
   },
   toggleTextActive: {
-    color: colors.accent,
-    fontWeight: '600',
+    color: '#FFFFFF',
+    fontWeight: '700',
   },
   chartLoading: {
     height: 240,
@@ -406,8 +489,12 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 12,
+    borderRadius: 14,
     padding: spacing.lg,
+    shadowColor: '#2D261E',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 12,
   },
   cardHeaderRow: {
     flexDirection: 'row',
@@ -418,7 +505,8 @@ const styles = StyleSheet.create({
   linkText: {
     color: colors.accent,
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '700',
+    fontFamily: typography.fontFamily,
   },
   accountsList: {
     gap: 12,
@@ -438,12 +526,13 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     fontWeight: '600',
     fontSize: 14,
+    fontFamily: typography.fontFamily,
   },
   accountBalance: {
     color: colors.textPrimary,
     fontSize: 16,
     fontWeight: '700',
-    fontFamily: typography.fontFamily,
+    fontFamily: typography.fontFamilyMono,
     ...typography.tabular,
   },
   transactionsList: {
@@ -465,7 +554,8 @@ const styles = StyleSheet.create({
   txDesc: {
     color: colors.textPrimary,
     fontSize: 13,
-    fontWeight: '500',
+    fontWeight: '600',
+    fontFamily: typography.fontFamily,
   },
   txMetaRow: {
     flexDirection: 'row',
@@ -480,7 +570,7 @@ const styles = StyleSheet.create({
   txAmount: {
     fontSize: 14,
     fontWeight: '700',
-    fontFamily: typography.fontFamily,
+    fontFamily: typography.fontFamilyMono,
     ...typography.tabular,
   },
   txIncome: {

@@ -12,6 +12,7 @@ import { DesktopSidebar, MobileTabBar } from '../../components/AppNavigation';
 import { useAuthStore } from '../../store/authStore';
 import { colors, typography, spacing } from '../../theme/tokens';
 import { Button } from '../../components/Button';
+import { IconShieldLock } from '../../components/Icons';
 
 export default function TabsLayout() {
   const { width } = useWindowDimensions();
@@ -23,7 +24,7 @@ export default function TabsLayout() {
       <View style={styles.lockContainer}>
         <View style={styles.lockCard}>
           <View style={styles.lockIconCircle}>
-            <Text style={styles.lockIconText}>🔒</Text>
+            <IconShieldLock size={26} color={colors.accent} strokeWidth={2} />
           </View>
           <Text style={styles.lockTitle}>Vault Ledger Locked</Text>
           <Text style={styles.lockDesc}>
@@ -98,27 +99,31 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 12,
+    borderRadius: 16,
     padding: spacing.xl,
     alignItems: 'center',
+    shadowColor: '#2D261E',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
   },
   lockIconCircle: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: colors.surfaceHighlight,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(40, 84, 48, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.md,
-  },
-  lockIconText: {
-    fontSize: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(40, 84, 48, 0.2)',
   },
   lockTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '700',
     color: colors.textPrimary,
     marginBottom: 8,
+    fontFamily: typography.fontFamilySerif,
   },
   lockDesc: {
     fontSize: 13,

@@ -48,34 +48,51 @@ function RootNavigator() {
 
   return (
     <View style={styles.container}>
-      <StatusBar style="light" />
+      <StatusBar style="dark" />
       {Platform.OS === 'web' && (
         <style
           dangerouslySetInnerHTML={{
             __html: `
+              @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
               html, body {
-                background-color: #14110F !important;
+                scroll-behavior: smooth !important;
+                background-color: #F4EFEA !important;
                 background-image: 
                   repeating-linear-gradient(90deg, 
-                    rgba(235, 215, 190, 0.015) 0px, 
-                    rgba(235, 215, 190, 0.015) 2px, 
-                    transparent 2px, 
-                    transparent 7px,
-                    rgba(235, 215, 190, 0.02) 7px,
-                    rgba(235, 215, 190, 0.02) 10px,
-                    transparent 10px,
-                    transparent 22px
+                    rgba(32, 30, 27, 0.012) 0px, 
+                    rgba(32, 30, 27, 0.012) 1px, 
+                    transparent 1px, 
+                    transparent 14px
                   ),
-                  radial-gradient(rgba(234, 225, 214, 0.035) 1px, transparent 1px),
-                  linear-gradient(180deg, #181411 0%, #14110F 50%, #0F0D0B 100%) !important;
-                background-size: auto, 18px 18px, 100% 100% !important;
+                  radial-gradient(rgba(180, 160, 140, 0.07) 1px, transparent 1px),
+                  linear-gradient(180deg, #F7F3EE 0%, #F4EFEA 50%, #EDE6DD 100%) !important;
+                background-size: auto, 16px 16px, 100% 100% !important;
+                font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+                color: #201E1B !important;
               }
-              div[style*="background-color: rgb(31, 26, 22)"],
-              div[style*="background-color: #1F1A16"],
-              div[style*="background-color: #1f1a16"] {
-                background-image: radial-gradient(rgba(234, 225, 214, 0.035) 1px, transparent 0) !important;
-                background-size: 14px 14px !important;
-                box-shadow: 0 12px 30px -8px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(234, 225, 214, 0.08) inset !important;
+
+              /* Smooth minimal sandy scrollbars */
+              ::-webkit-scrollbar {
+                width: 7px;
+                height: 7px;
+              }
+              ::-webkit-scrollbar-track {
+                background: #EDE5DC;
+              }
+              ::-webkit-scrollbar-thumb {
+                background: #C5B8A8;
+                border-radius: 4px;
+              }
+              ::-webkit-scrollbar-thumb:hover {
+                background: #285430;
+              }
+
+              /* Ceramic cards depth & sand border */
+              div[style*="background-color: rgb(250, 247, 242)"],
+              div[style*="background-color: #FAF7F2"],
+              div[style*="background-color: #faf7f2"] {
+                box-shadow: 0 4px 20px -4px rgba(45, 38, 30, 0.06), 0 1px 3px rgba(45, 38, 30, 0.04) !important;
               }
             `,
           }}

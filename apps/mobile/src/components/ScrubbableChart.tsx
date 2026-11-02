@@ -264,8 +264,9 @@ const styles = StyleSheet.create({
     fontSize: 26,
     fontWeight: '700',
     color: colors.textPrimary,
-    fontFamily: typography.fontFamily,
+    fontFamily: typography.fontFamilySerif,
     ...typography.tabular,
+    letterSpacing: -0.5,
     marginTop: 2,
   },
   confidencePill: {

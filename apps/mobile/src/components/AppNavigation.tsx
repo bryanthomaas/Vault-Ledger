@@ -8,22 +8,31 @@ import {
   Platform,
 } from 'react-native';
 import { useRouter, usePathname } from 'expo-router';
-import { colors, typography } from '../theme/tokens';
+import { colors, typography, leafRadius } from '../theme/tokens';
 import { useAuthStore } from '../store/authStore';
+import {
+  IconOverview,
+  IconTransactions,
+  IconRules,
+  IconBudgets,
+  IconGoals,
+  IconActivity,
+  type IconProps,
+} from './Icons';
 
 interface NavItem {
   name: string;
   path: string;
-  icon: string;
+  icon: React.FC<IconProps>;
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { name: 'Overview', path: '/(tabs)/', icon: '◫' },
-  { name: 'Transactions', path: '/(tabs)/transactions', icon: '⇄' },
-  { name: 'Rules', path: '/(tabs)/rules', icon: '⚡' },
-  { name: 'Budgets', path: '/(tabs)/budgets', icon: '◷' },
-  { name: 'Goals', path: '/(tabs)/goals', icon: '◎' },
-  { name: 'Activity', path: '/(tabs)/activity', icon: '🔔' },
+  { name: 'Overview', path: '/(tabs)/', icon: IconOverview },
+  { name: 'Transactions', path: '/(tabs)/transactions', icon: IconTransactions },
+  { name: 'Rules', path: '/(tabs)/rules', icon: IconRules },
+  { name: 'Budgets', path: '/(tabs)/budgets', icon: IconBudgets },
+  { name: 'Goals', path: '/(tabs)/goals', icon: IconGoals },
+  { name: 'Activity', path: '/(tabs)/activity', icon: IconActivity },
 ];
 
 export const DesktopSidebar: React.FC = () => {
@@ -48,6 +57,7 @@ export const DesktopSidebar: React.FC = () => {
           const isActive =
             pathname === item.path ||
             (item.path === '/(tabs)/' && (pathname === '/' || pathname === '/(tabs)'));
+          const IconComp = item.icon;
 
           return (
             <TouchableOpacity
@@ -55,7 +65,13 @@ export const DesktopSidebar: React.FC = () => {
               onPress={() => router.push(item.path as any)}
               style={[styles.navItem, isActive && styles.navItemActive]}
             >
-              <Text style={[styles.navIcon, isActive && styles.navTextActive]}>{item.icon}</Text>
+              <View style={styles.navIconBox}>
+                <IconComp
+                  size={18}
+                  color={isActive ? colors.accent : colors.textSecondary}
+                  strokeWidth={isActive ? 2 : 1.75}
+                />
+              </View>
               <Text style={[styles.navText, isActive && styles.navTextActive]}>{item.name}</Text>
             </TouchableOpacity>
           );
@@ -87,6 +103,7 @@ export const MobileTabBar: React.FC = () => {
         const isActive =
           pathname === item.path ||
           (item.path === '/(tabs)/' && (pathname === '/' || pathname === '/(tabs)'));
+        const IconComp = item.icon;
 
         return (
           <TouchableOpacity
@@ -94,7 +111,13 @@ export const MobileTabBar: React.FC = () => {
             onPress={() => router.push(item.path as any)}
             style={styles.tabItem}
           >
-            <Text style={[styles.tabIcon, isActive && styles.tabActive]}>{item.icon}</Text>
+            <View style={[styles.mobileIconWrap, isActive && styles.mobileIconWrapActive]}>
+              <IconComp
+                size={18}
+                color={isActive ? colors.accent : colors.textTertiary}
+                strokeWidth={isActive ? 2 : 1.75}
+              />
+            </View>
             <Text style={[styles.tabLabel, isActive && styles.tabActive]}>{item.name}</Text>
           </TouchableOpacity>
         );
@@ -124,22 +147,26 @@ const styles = StyleSheet.create({
   logoBadge: {
     width: 32,
     height: 32,
-    borderRadius: 6,
+    borderRadius: 8,
     backgroundColor: colors.accent,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#285430',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
   },
   logoBadgeText: {
     color: '#FFFFFF',
     fontWeight: '800',
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: typography.fontFamilyMono,
   },
   logoTitle: {
     color: colors.textPrimary,
     fontWeight: '800',
     fontSize: 14,
-    letterSpacing: 1.2,
+    letterSpacing: 1.1,
     fontFamily: typography.fontFamily,
   },
   logoSubtitle: {
@@ -150,7 +177,7 @@ const styles = StyleSheet.create({
   },
   navSection: {
     flex: 1,
-    gap: 4,
+    gap: 6,
   },
   navItem: {
     flexDirection: 'row',
@@ -158,25 +185,29 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingVertical: 10,
     paddingHorizontal: 12,
-    borderRadius: 6,
+    borderRadius: 10,
   },
   navItemActive: {
-    backgroundColor: colors.surfaceHighlight,
-    borderLeftWidth: 2,
+    backgroundColor: 'rgba(40, 84, 48, 0.09)',
+    borderLeftWidth: 3,
     borderLeftColor: colors.accent,
+    paddingLeft: 10,
   },
-  navIcon: {
-    fontSize: 16,
-    color: colors.textSecondary,
+  navIconBox: {
+    width: 22,
+    height: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   navText: {
     fontSize: 14,
     color: colors.textSecondary,
     fontWeight: '500',
+    fontFamily: typography.fontFamily,
   },
   navTextActive: {
-    color: colors.textPrimary,
-    fontWeight: '600',
+    color: colors.accent,
+    fontWeight: '700',
   },
   footer: {
     borderTopWidth: StyleSheet.hairlineWidth,
@@ -191,6 +222,7 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     fontWeight: '600',
     fontSize: 13,
+    fontFamily: typography.fontFamily,
   },
   userEmail: {
     color: colors.textTertiary,
@@ -204,7 +236,7 @@ const styles = StyleSheet.create({
   logoutText: {
     color: colors.negative,
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   tabBarContainer: {
     flexDirection: 'row',
@@ -217,11 +249,14 @@ const styles = StyleSheet.create({
   },
   tabItem: {
     alignItems: 'center',
-    gap: 2,
+    gap: 3,
   },
-  tabIcon: {
-    fontSize: 18,
-    color: colors.textTertiary,
+  mobileIconWrap: {
+    padding: 4,
+    borderRadius: 8,
+  },
+  mobileIconWrapActive: {
+    backgroundColor: 'rgba(40, 84, 48, 0.1)',
   },
   tabLabel: {
     fontSize: 10,
@@ -230,6 +265,6 @@ const styles = StyleSheet.create({
   },
   tabActive: {
     color: colors.accent,
-    fontWeight: '600',
+    fontWeight: '700',
   },
 });

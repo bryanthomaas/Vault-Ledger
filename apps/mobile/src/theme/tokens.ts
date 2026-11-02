@@ -1,52 +1,74 @@
 import { Platform } from 'react-native';
 
 export const colors = {
-  // Deep organic dark wood & earthy timber canvas
-  background: '#14110F',
-  canvas: '#14110F',
+  // Warm Desert Dune & Travertine Canvas
+  background: '#F4EFEA',
+  canvas: '#F4EFEA',
+  canvasMuted: '#EDE5DC',
 
-  // Surfaces: Warm earthenware ceramic & stoneware clay
-  surface: '#1F1A16',
-  surfaceSubtle: '#26201B',
-  surfaceHighlight: '#332B24',
+  // Surfaces: Stoneware Ceramic & Alabaster Clay
+  surface: '#FAF7F2',
+  surfaceSubtle: '#F2EBE1',
+  surfaceHighlight: '#EAE1D5',
+  surfaceElevated: '#FFFFFF',
 
-  // Wood & Sand Tones
-  woodGrain: '#2B231C',
-  woodDark: '#191410',
-  sand: '#EAE1D6',
-  sandSubtle: '#B8ABA0',
-  sandMuted: '#6B6055',
+  // Wood & Sand Accent Tones
+  sand: '#EDE5DC',
+  sandSubtle: '#C5B8A8',
+  sandMuted: '#968D84',
+  woodWarm: '#54463A',
 
-  // Hairline borders with warm sandy ceramic tone
-  border: 'rgba(234, 225, 214, 0.12)',
-  borderStrong: 'rgba(234, 225, 214, 0.24)',
+  // Hairline borders with warm desert sand tone
+  border: 'rgba(32, 30, 27, 0.08)',
+  borderStrong: 'rgba(32, 30, 27, 0.16)',
 
-  // Typography - Warm ceramic bone and desert linen
-  textPrimary: '#FAF6F0',
-  textSecondary: '#C5B9AC',
-  textTertiary: '#7E7266',
+  // Typography - High-contrast charcoal slate and warm earthy taupe
+  textPrimary: '#201E1B',
+  textSecondary: '#635C54',
+  textTertiary: '#968D84',
 
-  // Lush Botanical & Forest Green Accents
-  accent: '#2EAE60', // Deep botanical emerald / forest moss
-  accentSubtle: 'rgba(46, 174, 96, 0.16)',
-  positive: '#22C55E', // Lush leaf green
-  positiveSubtle: 'rgba(34, 197, 94, 0.16)',
-  negative: '#E25C50', // Earthy terracotta clay
-  negativeSubtle: 'rgba(226, 92, 80, 0.16)',
-  warning: '#E09B3D', // Warm amber resin
-  warningSubtle: 'rgba(224, 155, 61, 0.16)',
+  // Lush Botanical & Forest Moss Green Accents
+  accent: '#285430', // Deep botanical evergreen / forest moss
+  accentHover: '#1E432A', // Deep pine forest
+  accentSubtle: 'rgba(40, 84, 48, 0.12)',
+  positive: '#2D6A4F', // Lush leaf green
+  positiveSubtle: 'rgba(45, 106, 79, 0.12)',
+  negative: '#B94A3E', // Earthy terracotta clay
+  negativeSubtle: 'rgba(185, 74, 62, 0.12)',
+  warning: '#C47B27', // Warm amber ochre
+  warningSubtle: 'rgba(196, 123, 39, 0.12)',
+};
+
+export const leafRadius = {
+  asymmetric: {
+    borderTopLeftRadius: 16,
+    borderBottomRightRadius: 16,
+    borderTopRightRadius: 6,
+    borderBottomLeftRadius: 6,
+  },
+  pill: 9999,
+  xs: 4,
+  sm: 8,
+  md: 12,
+  lg: 16,
+  xl: 20,
 };
 
 export const typography = {
   fontFamily: Platform.select({
-    ios: 'System',
+    ios: 'Plus Jakarta Sans, System',
     android: 'sans-serif',
-    default: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    default: '"Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+  }),
+  fontFamilySerif: Platform.select({
+    ios: 'Fraunces, Georgia, serif',
+    android: 'serif',
+    default: '"Fraunces", "Playfair Display", Georgia, serif',
   }),
   fontFamilyMono: Platform.select({
-    ios: 'Courier',
+    ios: 'JetBrains Mono, Courier',
     android: 'monospace',
-    default: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+    default: '"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
   }),
   tabular: {
     fontVariant: ['tabular-nums'] as const,

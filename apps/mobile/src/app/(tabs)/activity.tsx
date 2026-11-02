@@ -13,6 +13,14 @@ import { apiRequest } from '../../api/client';
 import { colors, typography, spacing } from '../../theme/tokens';
 import { Badge } from '../../components/Badge';
 import { Button } from '../../components/Button';
+import {
+  IconRules,
+  IconAlertTriangle,
+  IconRepeat,
+  IconShieldLock,
+  IconInboxEmpty,
+  type IconProps,
+} from '../../components/Icons';
 import type { Notification, NotificationType } from '@vault-ledger/shared';
 
 export default function ActivityScreen() {
@@ -49,39 +57,39 @@ export default function ActivityScreen() {
     },
   });
 
-  const filteredItems = notifications.filter((item) => {
+  const filteredItems = (Array.isArray(notifications) ? notifications : []).filter((item) => {
     if (selectedFilter === 'all') return true;
     return item.type === selectedFilter;
   });
 
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  const unreadCount = (Array.isArray(notifications) ? notifications : []).filter((n) => !n.read).length;
 
-  const getTypeMetadata = (type: NotificationType) => {
+  const getTypeMetadata = (type: NotificationType): { icon: React.FC<IconProps>; label: string; variant: 'accent' | 'negative' | 'default' } => {
     switch (type) {
       case 'rule_fired':
         return {
-          icon: '⚡',
+          icon: IconRules,
           label: 'Rule Transfer',
-          variant: 'accent' as const,
+          variant: 'accent',
         };
       case 'budget_alert':
         return {
-          icon: '⚠',
+          icon: IconAlertTriangle,
           label: 'Budget Alert',
-          variant: 'negative' as const,
+          variant: 'negative',
         };
       case 'recurring_detected':
         return {
-          icon: '🔄',
+          icon: IconRepeat,
           label: 'Subscription',
-          variant: 'default' as const,
+          variant: 'default',
         };
       case 'system':
       default:
         return {
-          icon: '⚙',
+          icon: IconShieldLock,
           label: 'System Audit',
-          variant: 'default' as const,
+          variant: 'default',
         };
     }
   };
@@ -135,7 +143,7 @@ export default function ActivityScreen() {
       <View style={styles.filterRow}>
         {(
           [
-            { key: 'all', label: `All (${notifications.length})` },
+            { key: 'all', label: `All (${Array.isArray(notifications) ? notifications.length : 0})` },
             { key: 'rule_fired', label: 'Rules' },
             { key: 'budget_alert', label: 'Budgets' },
             { key: 'recurring_detected', label: 'Recurring' },
@@ -165,7 +173,7 @@ export default function ActivityScreen() {
         </View>
       ) : filteredItems.length === 0 ? (
         <View style={styles.emptyCard}>
-          <Text style={styles.emptyIcon}>◬</Text>
+          <IconInboxEmpty size={38} color={colors.textTertiary} />
           <Text style={styles.emptyTitle}>No Activity Recorded</Text>
           <Text style={styles.emptyDesc}>
             {selectedFilter === 'all'
@@ -177,6 +185,8 @@ export default function ActivityScreen() {
         <View style={styles.list}>
           {filteredItems.map((item) => {
             const meta = getTypeMetadata(item.type);
+            const IconComponent = meta.icon;
+
             return (
               <TouchableOpacity
                 key={item.id}
@@ -190,7 +200,18 @@ export default function ActivityScreen() {
               >
                 <View style={styles.cardHeader}>
                   <View style={styles.typeBadgeRow}>
-                    <Text style={styles.typeIcon}>{meta.icon}</Text>
+                    <View style={styles.typeIconBox}>
+                      <IconComponent
+                        size={15}
+                        color={
+                          meta.variant === 'accent'
+                            ? colors.accent
+                            : meta.variant === 'negative'
+                            ? colors.negative
+                            : colors.textSecondary
+                        }
+                      />
+                    </View>
                     <Badge label={meta.label} variant={meta.variant} />
                     {!item.read && (
                       <View style={styles.unreadDotBadge}>
@@ -244,15 +265,16 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 22,
-    fontWeight: '800',
+    fontWeight: '700',
     color: colors.textPrimary,
-    fontFamily: typography.fontFamily,
-    letterSpacing: 1.2,
+    fontFamily: typography.fontFamilySerif,
+    letterSpacing: -0.3,
   },
   subtitle: {
     fontSize: 13,
     color: colors.textSecondary,
     marginTop: 4,
+    fontFamily: typography.fontFamily,
   },
   filterRow: {
     flexDirection: 'row',
@@ -262,24 +284,25 @@ const styles = StyleSheet.create({
   },
   filterChip: {
     paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 6,
+    paddingHorizontal: 14,
+    borderRadius: 9999,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.surface,
   },
   filterChipActive: {
     borderColor: colors.accent,
-    backgroundColor: colors.surfaceHighlight,
+    backgroundColor: colors.accent,
   },
   filterChipText: {
     fontSize: 12,
     color: colors.textSecondary,
-    fontFamily: typography.fontFamilyMono,
+    fontFamily: typography.fontFamily,
+    fontWeight: '500',
   },
   filterChipTextActive: {
-    color: colors.accent,
-    fontWeight: '600',
+    color: '#FFFFFF',
+    fontWeight: '700',
   },
   loadingContainer: {
     paddingVertical: 60,
@@ -294,21 +317,22 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 8,
+    borderRadius: 14,
     padding: spacing.xxl,
     alignItems: 'center',
     marginTop: spacing.md,
-  },
-  emptyIcon: {
-    fontSize: 32,
-    color: colors.textTertiary,
-    marginBottom: spacing.sm,
+    shadowColor: '#2D261E',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 12,
   },
   emptyTitle: {
     fontSize: 16,
     fontWeight: '700',
     color: colors.textPrimary,
+    marginTop: spacing.md,
     marginBottom: 6,
+    fontFamily: typography.fontFamilySerif,
   },
   emptyDesc: {
     fontSize: 13,
@@ -316,6 +340,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     maxWidth: 420,
     lineHeight: 18,
+    fontFamily: typography.fontFamily,
   },
   list: {
     gap: 12,
@@ -324,12 +349,16 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 8,
+    borderRadius: 12,
     padding: spacing.lg,
+    shadowColor: '#2D261E',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
   },
   cardUnread: {
-    borderColor: colors.accent,
-    backgroundColor: '#1C241D',
+    borderColor: 'rgba(40, 84, 48, 0.35)',
+    backgroundColor: 'rgba(40, 84, 48, 0.05)',
   },
   cardHeader: {
     flexDirection: 'row',
@@ -342,8 +371,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
-  typeIcon: {
-    fontSize: 14,
+  typeIconBox: {
+    width: 22,
+    height: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   unreadDotBadge: {
     backgroundColor: colors.accent,
@@ -367,11 +399,13 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.textPrimary,
     marginBottom: 4,
+    fontFamily: typography.fontFamily,
   },
   cardMessage: {
     fontSize: 13,
     color: colors.textSecondary,
     lineHeight: 18,
+    fontFamily: typography.fontFamily,
   },
   metadataBox: {
     marginTop: spacing.md,

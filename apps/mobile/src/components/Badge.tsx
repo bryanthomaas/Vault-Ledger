@@ -20,40 +20,40 @@ const styles = StyleSheet.create({
   badge: {
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: 6,
+    borderRadius: 9999,
     borderWidth: 1,
     alignSelf: 'flex-start',
   },
   text: {
-    fontSize: 11,
-    fontWeight: '600',
+    fontSize: 10,
+    fontWeight: '700',
     fontFamily: typography.fontFamilyMono,
-    letterSpacing: 0.3,
+    letterSpacing: 0.4,
   },
   default: {
-    backgroundColor: colors.surfaceHighlight,
-    borderColor: colors.border,
+    backgroundColor: colors.surfaceSubtle,
+    borderColor: colors.borderStrong,
   },
   defaultText: {
     color: colors.textSecondary,
   },
   accent: {
     backgroundColor: colors.accentSubtle,
-    borderColor: 'rgba(0, 210, 224, 0.3)',
+    borderColor: 'rgba(40, 84, 48, 0.28)',
   },
   accentText: {
     color: colors.accent,
   },
   positive: {
     backgroundColor: colors.positiveSubtle,
-    borderColor: 'rgba(16, 185, 129, 0.3)',
+    borderColor: 'rgba(45, 106, 79, 0.28)',
   },
   positiveText: {
     color: colors.positive,
   },
   negative: {
     backgroundColor: colors.negativeSubtle,
-    borderColor: 'rgba(244, 63, 94, 0.3)',
+    borderColor: 'rgba(185, 74, 62, 0.28)',
   },
   negativeText: {
     color: colors.negative,

@@ -43,32 +43,36 @@ export const StatBlock: React.FC<StatBlockProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: 12,
+    paddingVertical: 8,
   },
   label: {
-    fontSize: 12,
+    fontSize: 11,
     color: colors.textSecondary,
     textTransform: 'uppercase',
-    letterSpacing: 0.6,
-    marginBottom: 4,
+    letterSpacing: 0.8,
+    marginBottom: 6,
+    fontFamily: typography.fontFamily,
+    fontWeight: '600',
   },
   value: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: '700',
     color: colors.textPrimary,
-    fontFamily: typography.fontFamily,
+    fontFamily: typography.fontFamilySerif,
     ...typography.tabular,
+    letterSpacing: -0.5,
   },
   footerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginTop: 4,
+    marginTop: 6,
   },
   trend: {
     fontSize: 12,
     color: colors.textSecondary,
     fontFamily: typography.fontFamilyMono,
+    fontWeight: '600',
     ...typography.tabular,
   },
   trendPositive: {
@@ -80,5 +84,6 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 12,
     color: colors.textTertiary,
+    fontFamily: typography.fontFamily,
   },
 });

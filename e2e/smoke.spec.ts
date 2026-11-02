@@ -19,8 +19,8 @@ test.describe('Vault Ledger Web Application Smoke Test', () => {
     await expect(root).toBeVisible();
 
     // Verify UI text rendered by React Native Web
-    await expect(page.getByText('VAULT LEDGER')).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText('DOUBLE-ENTRY CORE')).toBeVisible();
+    await expect(page.getByText('VAULT LEDGER').first()).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('DOUBLE-ENTRY CORE').first()).toBeVisible();
     await expect(page.getByText('Launch Live Demo Sandbox')).toBeVisible();
     await expect(page.getByText('Sign In', { exact: true }).first()).toBeVisible();
 
