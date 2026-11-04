@@ -10,6 +10,7 @@ import {
 import { useRouter, usePathname } from 'expo-router';
 import { colors, typography, leafRadius } from '../theme/tokens';
 import { useAuthStore } from '../store/authStore';
+import { ThemeToggle } from './ThemeToggle';
 import {
   IconOverview,
   IconTransactions,
@@ -79,6 +80,7 @@ export const DesktopSidebar: React.FC = () => {
       </View>
 
       <View style={styles.footer}>
+        <ThemeToggle variant="button" style={styles.themeToggleBtn} />
         <View style={styles.userBlock}>
           <Text style={styles.userName}>
             {user ? `${user.firstName} ${user.lastName}` : 'Bryan Thomas'}
@@ -188,7 +190,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   navItemActive: {
-    backgroundColor: 'rgba(40, 84, 48, 0.09)',
+    backgroundColor: colors.accentSubtle,
     borderLeftWidth: 3,
     borderLeftColor: colors.accent,
     paddingLeft: 10,
@@ -255,8 +257,11 @@ const styles = StyleSheet.create({
     padding: 4,
     borderRadius: 8,
   },
+  themeToggleBtn: {
+    marginBottom: 12,
+  },
   mobileIconWrapActive: {
-    backgroundColor: 'rgba(40, 84, 48, 0.1)',
+    backgroundColor: colors.accentSubtle,
   },
   tabLabel: {
     fontSize: 10,

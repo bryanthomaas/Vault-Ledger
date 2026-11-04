@@ -39,28 +39,28 @@ const styles = StyleSheet.create({
   },
   accent: {
     backgroundColor: colors.accentSubtle,
-    borderColor: 'rgba(40, 84, 48, 0.28)',
+    borderColor: colors.accentBorder,
   },
   accentText: {
     color: colors.accent,
   },
   positive: {
     backgroundColor: colors.positiveSubtle,
-    borderColor: 'rgba(45, 106, 79, 0.28)',
+    borderColor: colors.positiveBorder,
   },
   positiveText: {
     color: colors.positive,
   },
   negative: {
     backgroundColor: colors.negativeSubtle,
-    borderColor: 'rgba(185, 74, 62, 0.28)',
+    borderColor: colors.negativeBorder,
   },
   negativeText: {
     color: colors.negative,
   },
   warning: {
     backgroundColor: colors.warningSubtle,
-    borderColor: 'rgba(245, 158, 11, 0.3)',
+    borderColor: colors.warningBorder,
   },
   warningText: {
     color: colors.warning,

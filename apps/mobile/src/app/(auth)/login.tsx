@@ -16,6 +16,7 @@ import { useAuthStore } from '../../store/authStore';
 import { colors, typography, spacing, leafRadius } from '../../theme/tokens';
 import { Button } from '../../components/Button';
 import { HairlineDivider } from '../../components/HairlineDivider';
+import { ThemeToggle } from '../../components/ThemeToggle';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -118,15 +119,18 @@ export default function LoginScreen() {
           )}
 
           <View style={styles.card}>
-            {/* Brand Mark */}
+            {/* Brand Mark & Theme Toggle */}
             <View style={styles.brandRow}>
-              <View style={styles.brandBadge}>
-                <Text style={styles.brandBadgeText}>VL</Text>
+              <View style={styles.brandLeft}>
+                <View style={styles.brandBadge}>
+                  <Text style={styles.brandBadgeText}>VL</Text>
+                </View>
+                <View>
+                  <Text style={styles.brandTitle}>VAULT LEDGER</Text>
+                  <Text style={styles.brandSubtitle}>DOUBLE-ENTRY CORE</Text>
+                </View>
               </View>
-              <View>
-                <Text style={styles.brandTitle}>VAULT LEDGER</Text>
-                <Text style={styles.brandSubtitle}>DOUBLE-ENTRY CORE</Text>
-              </View>
+              <ThemeToggle variant="icon" />
             </View>
 
             <Text style={styles.headline}>Sign In</Text>
@@ -243,7 +247,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
   },
   heroOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(28, 24, 20, 0.45)',
     padding: spacing.xxl,
     justifyContent: 'space-between',
@@ -323,7 +327,7 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   mobileHeroOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(28, 24, 20, 0.45)',
     justifyContent: 'center',
     alignItems: 'center',
@@ -360,8 +364,13 @@ const styles = StyleSheet.create({
   brandRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    justifyContent: 'space-between',
     marginBottom: spacing.lg,
+  },
+  brandLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   brandBadge: {
     width: 32,
@@ -410,9 +419,9 @@ const styles = StyleSheet.create({
     fontFamily: typography.fontFamily,
   },
   demoBox: {
-    backgroundColor: 'rgba(40, 84, 48, 0.05)',
+    backgroundColor: colors.accentSubtle,
     borderWidth: 1.25,
-    borderColor: 'rgba(40, 84, 48, 0.22)',
+    borderColor: colors.borderStrong,
     borderRadius: 12,
     padding: spacing.md,
     marginBottom: spacing.lg,

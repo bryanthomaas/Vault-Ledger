@@ -380,7 +380,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
   },
   ambientBannerOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(26, 22, 18, 0.55)',
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,

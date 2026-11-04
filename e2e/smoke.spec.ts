@@ -78,4 +78,42 @@ test.describe('Vault Ledger Web Application Smoke Test', () => {
     await expect(page.getByText('ACTIVITY & AUDIT LOG')).toBeVisible({ timeout: 5000 });
     await page.screenshot({ path: 'screenshots/activity-screen.png' });
   });
+
+  test('toggles light mode and dark mode seamlessly with theme persistence', async ({ page }) => {
+    await page.goto('/');
+
+    // Check light mode by default
+    const html = page.locator('html');
+    await expect(html).not.toHaveClass(/dark/);
+
+    // Toggle to Dark Mode on the login screen
+    const loginThemeToggle = page.getByRole('button', { name: /switch to dark mode/i });
+    await expect(loginThemeToggle).toBeVisible();
+    await loginThemeToggle.click();
+
+    // Verify dark theme attribute and class applied
+    await expect(html).toHaveAttribute('data-theme', 'dark');
+    await expect(html).toHaveClass(/dark/);
+    await page.screenshot({ path: 'screenshots/login-dark-screen.png' });
+
+    // Launch Demo in dark mode
+    await page.getByText('Launch Live Demo Sandbox').click();
+    await expect(page.getByText('PORTFOLIO OVERVIEW')).toBeVisible({ timeout: 10000 });
+    await page.waitForTimeout(1000);
+    await page.screenshot({ path: 'screenshots/dashboard-dark-screen.png' });
+
+    // Verify sidebar theme toggle displays "Light Sand" option
+    const sidebarThemeToggle = page.getByRole('button', { name: /switch to light sand mode/i });
+    await expect(sidebarThemeToggle).toBeVisible();
+
+    // Toggle back to Light Sand mode
+    await sidebarThemeToggle.click();
+    await expect(html).toHaveAttribute('data-theme', 'light');
+    await expect(html).not.toHaveClass(/dark/);
+
+    // Verify persistence after page reload
+    await page.reload();
+    await expect(page.getByText('PORTFOLIO OVERVIEW')).toBeVisible({ timeout: 10000 });
+    await expect(html).toHaveAttribute('data-theme', 'light');
+  });
 });

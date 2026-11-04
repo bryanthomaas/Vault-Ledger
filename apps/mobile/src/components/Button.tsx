@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
   outline: {
     backgroundColor: 'transparent',
     borderWidth: 1.25,
-    borderColor: 'rgba(40, 84, 48, 0.3)',
+    borderColor: colors.accentBorder,
     borderRadius: 10,
   },
   outlineText: {

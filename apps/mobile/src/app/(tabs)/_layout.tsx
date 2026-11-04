@@ -4,7 +4,6 @@ import {
   StyleSheet,
   useWindowDimensions,
   Text,
-  TouchableOpacity,
   Platform,
 } from 'react-native';
 import { Slot } from 'expo-router';
@@ -13,6 +12,7 @@ import { useAuthStore } from '../../store/authStore';
 import { colors, typography, spacing } from '../../theme/tokens';
 import { Button } from '../../components/Button';
 import { IconShieldLock } from '../../components/Icons';
+import { ThemeToggle } from '../../components/ThemeToggle';
 
 export default function TabsLayout() {
   const { width } = useWindowDimensions();
@@ -52,6 +52,15 @@ export default function TabsLayout() {
         </View>
       ) : (
         <View style={styles.mobileLayout}>
+          <View style={styles.mobileHeader}>
+            <View style={styles.mobileBrand}>
+              <View style={styles.miniLogoBadge}>
+                <Text style={styles.miniLogoText}>VL</Text>
+              </View>
+              <Text style={styles.mobileBrandTitle}>VAULT LEDGER</Text>
+            </View>
+            <ThemeToggle variant="icon" />
+          </View>
           <View style={styles.mobileContent}>
             <Slot />
           </View>
@@ -83,6 +92,42 @@ const styles = StyleSheet.create({
     minHeight: Platform.OS === 'web' ? ('100vh' as any) : '100%',
     flexDirection: 'column',
   },
+  mobileHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.md,
+    paddingVertical: 10,
+    backgroundColor: colors.surface,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
+  },
+  mobileBrand: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  miniLogoBadge: {
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    backgroundColor: colors.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  miniLogoText: {
+    color: '#FFFFFF',
+    fontWeight: '800',
+    fontSize: 10,
+    fontFamily: typography.fontFamilyMono,
+  },
+  mobileBrandTitle: {
+    color: colors.textPrimary,
+    fontWeight: '800',
+    fontSize: 12,
+    letterSpacing: 1.1,
+    fontFamily: typography.fontFamily,
+  },
   mobileContent: {
     flex: 1,
   },
@@ -111,12 +156,12 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: 'rgba(40, 84, 48, 0.1)',
+    backgroundColor: colors.accentSubtle,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.md,
     borderWidth: 1,
-    borderColor: 'rgba(40, 84, 48, 0.2)',
+    borderColor: colors.borderStrong,
   },
   lockTitle: {
     fontSize: 22,

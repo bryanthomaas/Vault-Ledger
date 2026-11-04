@@ -15,6 +15,7 @@ import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../store/authStore';
 import { colors, typography, spacing } from '../../theme/tokens';
 import { Button } from '../../components/Button';
+import { ThemeToggle } from '../../components/ThemeToggle';
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -100,6 +101,14 @@ export default function RegisterScreen() {
           )}
 
           <View style={styles.card}>
+            {/* Brand Mark & Theme Toggle */}
+            <View style={styles.cardHeaderRow}>
+              <View style={styles.brandBadge}>
+                <Text style={styles.brandBadgeText}>VL</Text>
+              </View>
+              <ThemeToggle variant="icon" />
+            </View>
+
             <Text style={styles.headline}>Create Ledger</Text>
             <Text style={styles.subtext}>Initialize your personal double-entry vault.</Text>
 
@@ -215,7 +224,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
   },
   heroOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(28, 24, 20, 0.45)',
     padding: spacing.xxl,
     justifyContent: 'space-between',
@@ -295,7 +304,7 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   mobileHeroOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(28, 24, 20, 0.45)',
     justifyContent: 'center',
     alignItems: 'center',
@@ -328,6 +337,30 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.08,
     shadowRadius: 20,
+  },
+  cardHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing.md,
+  },
+  brandBadge: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: colors.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#285430',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+  },
+  brandBadgeText: {
+    color: '#FFFFFF',
+    fontWeight: '800',
+    fontSize: 13,
+    fontFamily: typography.fontFamilyMono,
   },
   headline: {
     fontSize: 26,

@@ -357,8 +357,8 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
   },
   cardUnread: {
-    borderColor: 'rgba(40, 84, 48, 0.35)',
-    backgroundColor: 'rgba(40, 84, 48, 0.05)',
+    borderColor: colors.accentBorder,
+    backgroundColor: colors.accentSubtle,
   },
   cardHeader: {
     flexDirection: 'row',
