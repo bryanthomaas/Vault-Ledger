@@ -8,11 +8,11 @@ import {
   useWindowDimensions,
   ActivityIndicator,
   RefreshControl,
-  Image,
+  Platform,
 } from 'react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '../../api/client';
-import { colors, typography, spacing, leafRadius } from '../../theme/tokens';
+import { colors, typography, spacing } from '../../theme/tokens';
 import { ScrubbableChart, type ChartDataPoint } from '../../components/ScrubbableChart';
 import { StatBlock } from '../../components/StatBlock';
 import { Badge } from '../../components/Badge';
@@ -151,8 +151,8 @@ export default function DashboardScreen() {
       {/* Header Bar */}
       <View style={styles.headerRow}>
         <View>
-          <Text style={styles.pageTitle}>PORTFOLIO OVERVIEW</Text>
-          <Text style={styles.pageSubtitle}>Double-Entry Verified Ledger</Text>
+          <Text style={styles.pageTitle}>Portfolio overview</Text>
+          <Text style={styles.pageSubtitle}>Balance sheet & portfolio analytics</Text>
         </View>
 
         <View style={styles.actionsRow}>
@@ -167,46 +167,58 @@ export default function DashboardScreen() {
         </View>
       </View>
 
-      {/* Ambient Real Nature Photography Card */}
-      <View style={styles.ambientBannerCard}>
-        <Image
-          source={require('../../../assets/images/dashboard-nature-banner.jpg')}
-          style={styles.ambientBannerImage}
-          resizeMode="cover"
-        />
-        <View style={styles.ambientBannerOverlay}>
-          <View style={styles.ambientBadge}>
-            <Text style={styles.ambientBadgeText}>SOVEREIGN RESERVE VAULT</Text>
-          </View>
-          <Text style={styles.ambientBannerTitle}>
-            Verifiable Double-Entry Engineering & Natural Wealth Balance
-          </Text>
-          <Text style={styles.ambientBannerDesc}>
-            Atomic ledger postings with deterministic rule sweeps and Monte Carlo forecasting.
-          </Text>
-        </View>
-      </View>
-
       {/* Top Stat Banner */}
       <View style={styles.statsGrid}>
         <StatBlock
-          label="Total Net Worth"
+          framed
+          isHero
+          label="Total net worth"
           value={formatCurrency(totalNetWorthCents)}
           trend="+12.4% vs 6mo ago"
           trendType="positive"
           style={{ flex: 1.5 }}
         />
         <StatBlock
-          label="Liquid Checking"
+          framed
+          label="Operating cash"
           value={formatCurrency(checkingAccount?.balanceCents ?? 0)}
-          subtitle="Operating Cash"
+          subtitle="Assets: Checking"
           style={{ flex: 1 }}
         />
         <StatBlock
-          label="Savings Vault"
+          framed
+          label="Reserve savings"
           value={formatCurrency(vaultAccount?.balanceCents ?? 0)}
-          subtitle="Automated Reserve"
+          subtitle="Assets: Savings"
           style={{ flex: 1 }}
+        />
+      </View>
+
+      {/* Quick Action Command Strip */}
+      <View style={{ flexDirection: 'row', gap: 8, marginVertical: spacing.sm, flexWrap: 'wrap' }}>
+        <Button
+          title="+ Record Posting"
+          onPress={() => router.push('/(tabs)/transactions' as any)}
+          variant="primary"
+          size="sm"
+        />
+        <Button
+          title="+ Automation Rule"
+          onPress={() => router.push('/(tabs)/rules' as any)}
+          variant="outline"
+          size="sm"
+        />
+        <Button
+          title="Adjust Budgets"
+          onPress={() => router.push('/(tabs)/budgets' as any)}
+          variant="outline"
+          size="sm"
+        />
+        <Button
+          title="Savings Goals"
+          onPress={() => router.push('/(tabs)/goals' as any)}
+          variant="outline"
+          size="sm"
         />
       </View>
 
@@ -215,24 +227,30 @@ export default function DashboardScreen() {
       {/* Interactive Chart Section */}
       <View style={styles.chartCard}>
         <View style={styles.chartControlRow}>
-          <Text style={styles.sectionHeader}>ASSET TRAJECTORY</Text>
+          <Text style={styles.sectionHeader}>Net worth trajectory</Text>
           <View style={styles.toggleGroup}>
             <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Switch to Historical 12-month net worth view"
+              aria-pressed={chartMode === 'history'}
               onPress={() => setChartMode('history')}
               style={[styles.toggleBtn, chartMode === 'history' && styles.toggleBtnActive]}
             >
               <Text style={[styles.toggleText, chartMode === 'history' && styles.toggleTextActive]}>
-                Historical (12M)
+                Historical (12m)
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Switch to Monte Carlo 6-month forecast view"
+              aria-pressed={chartMode === 'forecast'}
               onPress={() => setChartMode('forecast')}
               style={[styles.toggleBtn, chartMode === 'forecast' && styles.toggleBtnActive]}
             >
               <Text
                 style={[styles.toggleText, chartMode === 'forecast' && styles.toggleTextActive]}
               >
-                Monte Carlo (6M)
+                Forecast (6m)
               </Text>
             </TouchableOpacity>
           </View>
@@ -243,7 +261,7 @@ export default function DashboardScreen() {
             <ActivityIndicator color={colors.accent} size="large" />
           </View>
         ) : (
-          <ScrubbableChart data={chartData} width={chartWidth} height={260} />
+          <ScrubbableChart data={chartData} width={chartWidth} height={190} />
         )}
       </View>
 
@@ -252,19 +270,23 @@ export default function DashboardScreen() {
         {/* Accounts Card */}
         <View style={styles.columnCard}>
           <View style={styles.cardHeaderRow}>
-            <Text style={styles.sectionHeader}>LEDGER ACCOUNTS</Text>
-            <TouchableOpacity onPress={() => router.push('/(tabs)/goals' as any)}>
-              <Text style={styles.linkText}>Manage →</Text>
+            <Text style={styles.sectionHeader}>Ledger accounts</Text>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Manage ledger accounts"
+              onPress={() => router.push('/(tabs)/goals' as any)}
+            >
+              <Text style={styles.linkText}>Manage</Text>
             </TouchableOpacity>
           </View>
 
           <View style={styles.accountsList}>
-            {(Array.isArray(accountsQuery.data) ? accountsQuery.data : []).map((acc) => (
+            {(Array.isArray(accountsQuery.data) ? accountsQuery.data : []).slice(0, 4).map((acc) => (
               <View key={acc.id} style={styles.accountRow}>
                 <View style={styles.accountInfo}>
                   <Text style={styles.accountName}>{acc.name}</Text>
                   <Badge
-                    label={acc.type.toUpperCase()}
+                    label={acc.type.charAt(0).toUpperCase() + acc.type.slice(1)}
                     variant={acc.type === 'vault' ? 'accent' : 'default'}
                   />
                 </View>
@@ -284,9 +306,13 @@ export default function DashboardScreen() {
         {/* Recent Transactions Card */}
         <View style={styles.columnCard}>
           <View style={styles.cardHeaderRow}>
-            <Text style={styles.sectionHeader}>RECENT LEDGER ENTRIES</Text>
-            <TouchableOpacity onPress={() => router.push('/(tabs)/transactions' as any)}>
-              <Text style={styles.linkText}>View All ({transactionsQuery.data?.total || 0}) →</Text>
+            <Text style={styles.sectionHeader}>Recent entries</Text>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel={`View all ${transactionsQuery.data?.total || 0} ledger postings`}
+              onPress={() => router.push('/(tabs)/transactions' as any)}
+            >
+              <Text style={styles.linkText}>View all ({transactionsQuery.data?.total || 0})</Text>
             </TouchableOpacity>
           </View>
 
@@ -296,10 +322,18 @@ export default function DashboardScreen() {
               : Array.isArray(transactionsQuery.data)
               ? (transactionsQuery.data as any)
               : []
-            ).slice(0, 6).map((tx: TransactionView) => {
+            ).slice(0, 4).map((tx: TransactionView) => {
               const isIncome = tx.amountCents > 0;
               return (
-                <View key={tx.id} style={styles.transactionRow}>
+                <TouchableOpacity
+                  key={tx.id}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Transaction ${tx.merchant || tx.description}, ${formatCurrency(tx.amountCents)}`}
+                  {...(Platform.OS === 'web' ? ({ className: 'vl-interactive-row' } as any) : {})}
+                  style={styles.transactionRow}
+                  onPress={() => router.push('/(tabs)/transactions' as any)}
+                  activeOpacity={0.7}
+                >
                   <View style={styles.txLeft}>
                     <Text style={styles.txDesc} numberOfLines={1}>
                       {tx.merchant || tx.description}
@@ -307,7 +341,7 @@ export default function DashboardScreen() {
                     <View style={styles.txMetaRow}>
                       <Badge label={tx.category} variant="default" style={{ paddingVertical: 1 }} />
                       {tx.isRoundUp && (
-                        <Badge label="ROUND-UP" variant="accent" style={{ paddingVertical: 1 }} />
+                        <Badge label="Round-up" variant="accent" style={{ paddingVertical: 1 }} />
                       )}
                       <Text style={styles.txDate}>
                         {new Date(tx.occurredAt).toLocaleDateString('en-US', {
@@ -320,7 +354,7 @@ export default function DashboardScreen() {
                   <Text style={[styles.txAmount, isIncome ? styles.txIncome : styles.txExpense]}>
                     {formatCurrency(tx.amountCents, { showSign: true })}
                   </Text>
-                </View>
+                </TouchableOpacity>
               );
             })}
           </View>
@@ -333,10 +367,15 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    height: '100%',
+    maxHeight: '100%',
+    overflow: 'hidden',
     backgroundColor: colors.background,
   },
   contentContainer: {
-    padding: spacing.lg,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.md,
     maxWidth: 1200,
     width: '100%',
     alignSelf: 'center',
@@ -345,17 +384,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.lg,
+    marginBottom: spacing.md,
   },
   pageTitle: {
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.textPrimary,
     letterSpacing: -0.3,
     fontFamily: typography.fontFamilySerif,
   },
   pageSubtitle: {
-    fontSize: 12,
+    fontSize: 13,
     color: colors.textSecondary,
     fontFamily: typography.fontFamilyMono,
     marginTop: 2,
@@ -364,117 +403,76 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
   },
-  ambientBannerCard: {
-    width: '100%',
-    height: 120,
-    borderRadius: 14,
-    overflow: 'hidden',
-    marginBottom: spacing.lg,
-    position: 'relative',
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-  },
-  ambientBannerImage: {
-    width: '100%',
-    height: '100%',
-    position: 'absolute',
-  },
-  ambientBannerOverlay: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: 'rgba(26, 22, 18, 0.55)',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    justifyContent: 'center',
-  },
-  ambientBadge: {
-    backgroundColor: 'rgba(255, 255, 255, 0.18)',
-    alignSelf: 'flex-start',
-    paddingVertical: 3,
-    paddingHorizontal: 8,
-    borderRadius: 4,
-    marginBottom: 6,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.25)',
-  },
-  ambientBadgeText: {
-    color: '#FAF6F0',
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 0.8,
-    fontFamily: typography.fontFamilyMono,
-  },
-  ambientBannerTitle: {
-    color: '#FFFFFF',
-    fontSize: 17,
-    fontWeight: '700',
-    fontFamily: typography.fontFamilySerif,
-    letterSpacing: -0.2,
-  },
-  ambientBannerDesc: {
-    color: '#EAE1D5',
-    fontSize: 12,
-    marginTop: 2,
-    fontFamily: typography.fontFamily,
-  },
   statsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: spacing.lg,
-    marginBottom: spacing.sm,
+    gap: spacing.md,
+    marginBottom: spacing.xs,
   },
   chartCard: {
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 14,
-    padding: spacing.lg,
-    marginBottom: spacing.lg,
-    shadowColor: '#2D261E',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 12,
+    borderRadius: 12,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+    ...(Platform.OS === 'web'
+      ? ({
+          boxShadow: '0 1px 2px rgba(0, 0, 0, 0.03)',
+        } as any)
+      : {
+          shadowColor: '#000000',
+          shadowOffset: { width: 0, height: 1 },
+          shadowOpacity: 0.03,
+          shadowRadius: 2,
+        }),
   },
   chartControlRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.md,
+    marginBottom: spacing.sm,
   },
   sectionHeader: {
-    fontSize: 11,
+    fontSize: 13,
     fontFamily: typography.fontFamily,
-    color: colors.textSecondary,
-    fontWeight: '700',
-    letterSpacing: 0.8,
+    color: colors.textPrimary,
+    fontWeight: '600',
+    letterSpacing: -0.1,
   },
   toggleGroup: {
     flexDirection: 'row',
-    backgroundColor: colors.surfaceSubtle,
-    borderRadius: 8,
-    padding: 3,
+    backgroundColor: colors.surfaceRaised,
+    borderRadius: 6,
+    padding: 2,
     borderWidth: 1,
     borderColor: colors.border,
   },
   toggleBtn: {
-    paddingVertical: 5,
-    paddingHorizontal: 12,
-    borderRadius: 6,
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 4,
   },
   toggleBtnActive: {
-    backgroundColor: colors.accent,
+    backgroundColor: colors.surface,
+    ...(Platform.OS === 'web'
+      ? ({
+          boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+        } as any)
+      : {}),
   },
   toggleText: {
-    fontSize: 11,
-    color: colors.textTertiary,
+    fontSize: 12,
+    color: colors.textSecondary,
     fontFamily: typography.fontFamily,
     fontWeight: '500',
   },
   toggleTextActive: {
-    color: '#FFFFFF',
-    fontWeight: '700',
+    color: colors.textPrimary,
+    fontWeight: '600',
   },
   chartLoading: {
-    height: 240,
+    height: 190,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -489,72 +487,80 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 14,
-    padding: spacing.lg,
-    shadowColor: '#2D261E',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 12,
+    borderRadius: 12,
+    padding: spacing.md,
+    ...(Platform.OS === 'web'
+      ? ({
+          boxShadow: '0 1px 2px rgba(0, 0, 0, 0.03)',
+        } as any)
+      : {
+          shadowColor: '#000000',
+          shadowOffset: { width: 0, height: 1 },
+          shadowOpacity: 0.03,
+          shadowRadius: 2,
+        }),
   },
   cardHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.md,
+    marginBottom: spacing.sm,
   },
   linkText: {
     color: colors.accent,
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: 13,
+    fontWeight: '600',
     fontFamily: typography.fontFamily,
   },
   accountsList: {
-    gap: 12,
+    gap: 6,
   },
   accountRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 10,
+    paddingVertical: 6,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border,
   },
   accountInfo: {
-    gap: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   accountName: {
     color: colors.textPrimary,
-    fontWeight: '600',
-    fontSize: 14,
+    fontWeight: '500',
+    fontSize: 13,
     fontFamily: typography.fontFamily,
   },
   accountBalance: {
     color: colors.textPrimary,
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: 14,
+    fontWeight: '600',
     fontFamily: typography.fontFamilyMono,
     ...typography.tabular,
   },
   transactionsList: {
-    gap: 12,
+    gap: 6,
   },
   transactionRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: 6,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border,
   },
   txLeft: {
     flex: 1,
-    gap: 4,
+    gap: 2,
     marginRight: 12,
   },
   txDesc: {
     color: colors.textPrimary,
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '500',
     fontFamily: typography.fontFamily,
   },
   txMetaRow: {
@@ -563,13 +569,13 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   txDate: {
-    fontSize: 11,
-    color: colors.textTertiary,
+    fontSize: 13,
+    color: colors.textSecondary,
     fontFamily: typography.fontFamilyMono,
   },
   txAmount: {
-    fontSize: 14,
-    fontWeight: '700',
+    fontSize: 13,
+    fontWeight: '600',
     fontFamily: typography.fontFamilyMono,
     ...typography.tabular,
   },

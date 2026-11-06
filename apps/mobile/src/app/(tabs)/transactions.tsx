@@ -8,13 +8,16 @@ import {
   TouchableOpacity,
   Modal,
   ActivityIndicator,
+  Platform,
+  useWindowDimensions,
 } from 'react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '../../api/client';
-import { colors, typography, spacing } from '../../theme/tokens';
+import { colors, typography, spacing, radius } from '../../theme/tokens';
 import { Badge } from '../../components/Badge';
 import { Button } from '../../components/Button';
-import { formatCurrency, type TransactionView } from '@vault-ledger/shared';
+import { PaginationBar } from '../../components/PaginationBar';
+import { formatCurrency, type TransactionView, type Account } from '@vault-ledger/shared';
 
 const CATEGORIES = [
   'All',
@@ -35,6 +38,19 @@ export default function TransactionsScreen() {
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedTx, setSelectedTx] = useState<TransactionView | null>(null);
+
+  // New posting state
+  const [createModalVisible, setCreateModalVisible] = useState(false);
+  const [newDesc, setNewDesc] = useState('');
+  const [newAmount, setNewAmount] = useState('');
+  const [newType, setNewType] = useState<'expense' | 'income'>('expense');
+  const [newCategory, setNewCategory] = useState('Groceries');
+  const [selectedAccountId, setSelectedAccountId] = useState<string>('');
+
+  const accountsQuery = useQuery<Account[]>({
+    queryKey: ['accounts'],
+    queryFn: () => apiRequest('/api/accounts'),
+  });
 
   const transactionsQuery = useQuery<{ transactions: TransactionView[]; total: number }>({
     queryKey: ['transactions', selectedCategory],
@@ -61,6 +77,58 @@ export default function TransactionsScreen() {
     },
   });
 
+  // Create posting mutation
+  const createTxMutation = useMutation({
+    mutationFn: (body: any) =>
+      apiRequest('/api/transactions', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['budgets'] });
+      queryClient.invalidateQueries({ queryKey: ['insights'] });
+      setCreateModalVisible(false);
+      setNewDesc('');
+      setNewAmount('');
+    },
+  });
+
+  // Delete posting mutation
+  const deleteTxMutation = useMutation({
+    mutationFn: (id: string) =>
+      apiRequest(`/api/transactions/${id}`, {
+        method: 'DELETE',
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['budgets'] });
+      queryClient.invalidateQueries({ queryKey: ['insights'] });
+      setSelectedTx(null);
+    },
+  });
+
+  const handleCreatePosting = () => {
+    const dollars = parseFloat(newAmount);
+    if (!newDesc.trim() || isNaN(dollars) || dollars <= 0) return;
+
+    const accounts = Array.isArray(accountsQuery.data) ? accountsQuery.data : [];
+    const targetAccountId = selectedAccountId || accounts[0]?.id || '10000000-0000-0000-0000-000000000001';
+    const amountCents = Math.round(dollars * 100) * (newType === 'expense' ? -1 : 1);
+
+    createTxMutation.mutate({
+      description: newDesc.trim(),
+      merchant: newDesc.trim(),
+      amountCents,
+      category: newCategory,
+      accountId: targetAccountId,
+      source: 'manual_posting',
+      occurredAt: new Date().toISOString(),
+    });
+  };
+
   const rawTransactions = Array.isArray(transactionsQuery.data?.transactions)
     ? transactionsQuery.data.transactions
     : Array.isArray(transactionsQuery.data)
@@ -77,25 +145,56 @@ export default function TransactionsScreen() {
     );
   });
 
+  const { height: windowHeight } = useWindowDimensions();
+  const [listContainerHeight, setListContainerHeight] = useState<number>(0);
+  const effectiveHeight =
+    listContainerHeight > 200 ? listContainerHeight : Math.max(480, windowHeight - 230);
+  const pageSize = Math.max(8, Math.floor((effectiveHeight - 8) / 56));
+
+  const [currentPage, setCurrentPage] = useState(1);
+
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [search, selectedCategory]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+
+  const paginatedTransactions = React.useMemo(() => {
+    const start = (safeCurrentPage - 1) * pageSize;
+    return filtered.slice(start, start + pageSize);
+  }, [filtered, safeCurrentPage, pageSize]);
+
   return (
     <View style={styles.container}>
+      {/* Header with Title and Add Button */}
       <View style={styles.header}>
-        <Text style={styles.title}>TRANSACTIONS</Text>
-        <Text style={styles.subtitle}>{filtered.length} verified ledger postings</Text>
+        <View style={styles.headerTitleRow}>
+          <View>
+            <Text style={styles.title}>Transactions</Text>
+            <Text style={styles.subtitle}>{filtered.length} double-entry postings verified</Text>
+          </View>
+          <Button
+            title="+ Record Posting"
+            onPress={() => setCreateModalVisible(true)}
+            variant="primary"
+            size="sm"
+          />
+        </View>
       </View>
 
       {/* Search Input */}
       <View style={styles.searchRow}>
         <TextInput
           style={styles.searchInput}
-          placeholder="Search merchant, description, category..."
+          placeholder="Filter merchant, description, category..."
           placeholderTextColor={colors.textTertiary}
           value={search}
           onChangeText={setSearch}
         />
       </View>
 
-      {/* Category Pills Bar */}
+      {/* Category Filter Segments */}
       <View style={styles.categoriesBar}>
         <FlatList
           horizontal
@@ -107,8 +206,11 @@ export default function TransactionsScreen() {
             const isSelected = selectedCategory === item;
             return (
               <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityLabel={`Filter by category ${item}`}
+                aria-pressed={isSelected}
                 onPress={() => setSelectedCategory(item)}
-                style={[styles.catPill, isSelected && styles.catPillSelected]}
+                style={[styles.catSegment, isSelected && styles.catSegmentSelected]}
               >
                 <Text style={[styles.catText, isSelected && styles.catTextSelected]}>{item}</Text>
               </TouchableOpacity>
@@ -118,51 +220,173 @@ export default function TransactionsScreen() {
       </View>
 
       {/* Transactions List */}
-      {transactionsQuery.isLoading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator color={colors.accent} size="large" />
-        </View>
-      ) : (
-        <FlatList
-          data={filtered}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.listContent}
-          renderItem={({ item }) => {
-            const isIncome = item.amountCents > 0;
-            return (
-              <TouchableOpacity
-                onPress={() => setSelectedTx(item)}
-                activeOpacity={0.7}
-                style={styles.row}
-              >
-                <View style={styles.leftCol}>
-                  <Text style={styles.merchant}>{item.merchant || item.description}</Text>
-                  <View style={styles.badgeRow}>
-                    <Badge label={item.category} variant="default" />
-                    {item.isRoundUp && <Badge label="ROUND-UP" variant="accent" />}
-                    <Text style={styles.date}>
-                      {new Date(item.occurredAt).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                      })}
-                    </Text>
+      <View
+        style={styles.listWrapper}
+        onLayout={(e) => {
+          const h = e.nativeEvent.layout.height;
+          if (h > 200 && Math.abs(h - listContainerHeight) > 8) {
+            setListContainerHeight(h);
+          }
+        }}
+      >
+        {transactionsQuery.isLoading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator color={colors.accent} size="large" />
+          </View>
+        ) : (
+          <View style={styles.listContent}>
+            {paginatedTransactions.map((item: any) => {
+              const isIncome = item.amountCents > 0;
+              return (
+                <TouchableOpacity
+                  key={item.id}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Posting ${item.merchant || item.description}, ${formatCurrency(item.amountCents)}`}
+                  {...(Platform.OS === 'web' ? ({ className: 'vl-interactive-row' } as any) : {})}
+                  onPress={() => setSelectedTx(item)}
+                  activeOpacity={0.7}
+                  style={[
+                    styles.row,
+                    paginatedTransactions.length >= pageSize && styles.rowExpanded,
+                  ]}
+                >
+                  <View style={styles.leftCol}>
+                    <Text style={styles.merchant}>{item.merchant || item.description}</Text>
+                    <View style={styles.badgeRow}>
+                      <Badge label={item.category} variant="default" />
+                      {item.isRoundUp && <Badge label="Round-up" variant="accent" />}
+                      <Text style={styles.date}>
+                        {new Date(item.occurredAt).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })}
+                      </Text>
+                    </View>
                   </View>
-                </View>
 
-                <View style={styles.rightCol}>
-                  <Text style={[styles.amount, isIncome ? styles.income : styles.expense]}>
-                    {formatCurrency(item.amountCents, { showSign: true })}
+                  <View style={styles.rightCol}>
+                    <Text style={[styles.amount, isIncome ? styles.income : styles.expense]}>
+                      {formatCurrency(item.amountCents, { showSign: true })}
+                    </Text>
+                    <Text style={styles.accountName}>{item.accountName}</Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        )}
+      </View>
+
+      {/* Pinned Bottom Pagination */}
+      <PaginationBar
+        currentPage={safeCurrentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+        totalItems={filtered.length}
+        pageSize={pageSize}
+      />
+
+      {/* Create Posting Modal */}
+      {createModalVisible && (
+        <Modal
+          visible={true}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setCreateModalVisible(false)}
+        >
+          <View nativeID="vl-modal-backdrop" style={styles.modalBackdrop}>
+            <View nativeID="vl-modal-card" style={styles.modalCard}>
+              <Text style={styles.modalTitle}>Record Ledger Posting</Text>
+              <Text style={styles.modalDesc}>
+                Enter balanced double-entry transaction parameters to post directly to your ledger accounts.
+              </Text>
+
+              {/* Type Toggle */}
+              <View style={styles.typeToggleRow}>
+                <TouchableOpacity
+                  onPress={() => setNewType('expense')}
+                  style={[styles.typeBtn, newType === 'expense' && styles.typeBtnActive]}
+                >
+                  <Text style={[styles.typeBtnText, newType === 'expense' && styles.typeBtnTextActive]}>
+                    Debit (Expense)
                   </Text>
-                  <Text style={styles.accountName}>{item.accountName}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => setNewType('income')}
+                  style={[styles.typeBtn, newType === 'income' && styles.typeBtnActive]}
+                >
+                  <Text style={[styles.typeBtnText, newType === 'income' && styles.typeBtnTextActive]}>
+                    Credit (Income)
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Description */}
+              <View style={styles.formGroup}>
+                <Text style={styles.formLabel}>Merchant or Description</Text>
+                <TextInput
+                  style={styles.formInput}
+                  placeholder="e.g. Blue Bottle Coffee, Tech Corp Payroll"
+                  placeholderTextColor={colors.textTertiary}
+                  value={newDesc}
+                  onChangeText={setNewDesc}
+                />
+              </View>
+
+              {/* Amount */}
+              <View style={styles.formGroup}>
+                <Text style={styles.formLabel}>Amount ($ USD)</Text>
+                <TextInput
+                  style={styles.formInput}
+                  placeholder="45.50"
+                  placeholderTextColor={colors.textTertiary}
+                  keyboardType="decimal-pad"
+                  value={newAmount}
+                  onChangeText={setNewAmount}
+                />
+              </View>
+
+              {/* Category Picker */}
+              <View style={styles.formGroup}>
+                <Text style={styles.formLabel}>Category</Text>
+                <View style={styles.categoryGrid}>
+                  {CATEGORIES.filter((c) => c !== 'All').map((cat) => (
+                    <TouchableOpacity
+                      key={cat}
+                      onPress={() => setNewCategory(cat)}
+                      style={[styles.modalCatBtn, newCategory === cat && styles.modalCatBtnActive]}
+                    >
+                      <Text style={[styles.modalCatText, newCategory === cat && styles.modalCatTextActive]}>
+                        {cat}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
                 </View>
-              </TouchableOpacity>
-            );
-          }}
-        />
+              </View>
+
+              {/* Action Buttons */}
+              <View style={{ flexDirection: 'row', gap: 10, marginTop: spacing.md }}>
+                <Button
+                  title="Post to Ledger"
+                  onPress={handleCreatePosting}
+                  loading={createTxMutation.isPending}
+                  variant="primary"
+                  style={{ flex: 1 }}
+                />
+                <Button
+                  title="Cancel"
+                  onPress={() => setCreateModalVisible(false)}
+                  variant="outline"
+                  style={{ flex: 1 }}
+                />
+              </View>
+            </View>
+          </View>
+        </Modal>
       )}
 
-      {/* Re-categorize Modal */}
+      {/* Transaction Detail / Re-classify & Delete Modal */}
       {selectedTx && (
         <Modal
           visible={true}
@@ -170,14 +394,14 @@ export default function TransactionsScreen() {
           animationType="fade"
           onRequestClose={() => setSelectedTx(null)}
         >
-          <View style={styles.modalBackdrop}>
-            <View style={styles.modalCard}>
-              <Text style={styles.modalTitle}>Re-categorize Transaction</Text>
+          <View nativeID="vl-modal-backdrop" style={styles.modalBackdrop}>
+            <View nativeID="vl-modal-card" style={styles.modalCard}>
+              <Text style={styles.modalTitle}>Posting Details</Text>
               <Text style={styles.modalDesc}>
-                Select a new category for "{selectedTx.merchant || selectedTx.description}" (
-                {formatCurrency(selectedTx.amountCents)}).
+                "{selectedTx.merchant || selectedTx.description}" · {formatCurrency(selectedTx.amountCents)}
               </Text>
 
+              <Text style={styles.formLabel}>Reclassify Expense Category</Text>
               <View style={styles.categoryGrid}>
                 {CATEGORIES.filter((c) => c !== 'All').map((cat) => (
                   <TouchableOpacity
@@ -200,12 +424,21 @@ export default function TransactionsScreen() {
                 ))}
               </View>
 
-              <Button
-                title="Cancel"
-                onPress={() => setSelectedTx(null)}
-                variant="outline"
-                style={{ marginTop: spacing.md }}
-              />
+              <View style={{ flexDirection: 'row', gap: 10, marginTop: spacing.lg }}>
+                <Button
+                  title="Delete Posting"
+                  onPress={() => deleteTxMutation.mutate(selectedTx.id)}
+                  loading={deleteTxMutation.isPending}
+                  variant="outline"
+                  style={{ flex: 1, borderColor: colors.negative }}
+                />
+                <Button
+                  title="Close"
+                  onPress={() => setSelectedTx(null)}
+                  variant="outline"
+                  style={{ flex: 1 }}
+                />
+              </View>
             </View>
           </View>
         </Modal>
@@ -217,6 +450,9 @@ export default function TransactionsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    height: '100%',
+    maxHeight: '100%',
+    overflow: 'hidden',
     backgroundColor: colors.background,
   },
   header: {
@@ -224,17 +460,22 @@ const styles = StyleSheet.create({
     paddingTop: spacing.lg,
     paddingBottom: spacing.sm,
   },
+  headerTitleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
   title: {
-    fontSize: 22,
-    fontWeight: '700',
+    fontSize: 26,
+    fontWeight: '600',
     color: colors.textPrimary,
     fontFamily: typography.fontFamilySerif,
     letterSpacing: -0.3,
   },
   subtitle: {
-    fontSize: 12,
+    fontSize: 13,
     color: colors.textSecondary,
-    fontFamily: typography.fontFamilyMono,
+    fontFamily: typography.fontFamily,
     marginTop: 2,
   },
   searchRow: {
@@ -244,55 +485,72 @@ const styles = StyleSheet.create({
   searchInput: {
     backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderRadius: 8,
+    borderColor: colors.border,
+    borderRadius: radius.sm,
     paddingHorizontal: 12,
     paddingVertical: 10,
     color: colors.textPrimary,
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: typography.fontFamily,
+    ...(Platform.OS === 'web'
+      ? ({
+          outlineStyle: 'none',
+        } as any)
+      : {}),
   },
   categoriesBar: {
     paddingVertical: 6,
   },
-  catPill: {
-    backgroundColor: colors.surface,
-    paddingHorizontal: 14,
+  catSegment: {
+    paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 9999,
+    borderRadius: radius.sm,
     borderWidth: 1,
-    borderColor: colors.borderStrong,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
   },
-  catPillSelected: {
-    backgroundColor: colors.accent,
+  catSegmentSelected: {
     borderColor: colors.accent,
+    backgroundColor: colors.accentSubtle,
   },
   catText: {
-    fontSize: 12,
+    fontSize: 12.5,
     color: colors.textSecondary,
     fontFamily: typography.fontFamily,
     fontWeight: '500',
+    letterSpacing: 0,
   },
   catTextSelected: {
-    color: '#FFFFFF',
-    fontWeight: '700',
+    color: colors.accent,
+    fontWeight: '600',
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
+  listWrapper: {
+    flex: 1,
+    overflow: 'hidden',
+  },
   listContent: {
+    flex: 1,
     paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.xxl,
+    paddingBottom: 4,
+    justifyContent: 'flex-start',
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: 10,
+    minHeight: 54,
+    maxHeight: 68,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border,
+  },
+  rowExpanded: {
+    flex: 1,
   },
   leftCol: {
     flex: 1,
@@ -303,6 +561,7 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     fontSize: 14,
     fontWeight: '600',
+    fontFamily: typography.fontFamily,
   },
   badgeRow: {
     flexDirection: 'row',
@@ -310,17 +569,17 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   date: {
-    fontSize: 11,
-    color: colors.textTertiary,
-    fontFamily: typography.fontFamilyMono,
+    fontSize: 13,
+    color: colors.textSecondary,
+    fontFamily: typography.fontFamily,
   },
   rightCol: {
     alignItems: 'flex-end',
     gap: 2,
   },
   amount: {
-    fontSize: 15,
-    fontWeight: '700',
+    fontSize: 14,
+    fontWeight: '600',
     fontFamily: typography.fontFamily,
     ...typography.tabular,
   },
@@ -331,29 +590,36 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
   },
   accountName: {
-    fontSize: 11,
-    color: colors.textTertiary,
+    fontSize: 13,
+    color: colors.textSecondary,
+    fontFamily: typography.fontFamily,
   },
   modalBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    backgroundColor: 'rgba(10, 11, 20, 0.75)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: spacing.lg,
   },
   modalCard: {
     width: '100%',
-    maxWidth: 420,
+    maxWidth: 480,
     backgroundColor: colors.surface,
-    borderRadius: 12,
+    borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     padding: spacing.xl,
+    ...(Platform.OS === 'web'
+      ? ({
+          boxShadow: '0 20px 48px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(141, 141, 245, 0.20)',
+        } as any)
+      : {}),
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '700',
     color: colors.textPrimary,
+    fontFamily: typography.fontFamilySerif,
     marginBottom: 6,
   },
   modalDesc: {
@@ -361,18 +627,70 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginBottom: spacing.md,
     lineHeight: 18,
+    fontFamily: typography.fontFamily,
+  },
+  typeToggleRow: {
+    flexDirection: 'row',
+    backgroundColor: colors.surfaceRaised,
+    borderRadius: radius.sm,
+    padding: 3,
+    marginBottom: spacing.md,
+  },
+  typeBtn: {
+    flex: 1,
+    paddingVertical: 8,
+    alignItems: 'center',
+    borderRadius: radius.sm,
+  },
+  typeBtnActive: {
+    backgroundColor: colors.accent,
+  },
+  typeBtnText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.textTertiary,
+    fontFamily: typography.fontFamily,
+  },
+  typeBtnTextActive: {
+    color: '#0A0B14',
+  },
+  formGroup: {
+    marginBottom: spacing.md,
+  },
+  formLabel: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    fontWeight: '600',
+    marginBottom: 6,
+    fontFamily: typography.fontFamily,
+  },
+  formInput: {
+    height: 42,
+    backgroundColor: colors.surfaceRaised,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.sm,
+    paddingHorizontal: 12,
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontFamily: typography.fontFamily,
+    ...(Platform.OS === 'web'
+      ? ({
+          outlineStyle: 'none',
+        } as any)
+      : {}),
   },
   categoryGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
-    marginVertical: spacing.sm,
+    gap: 6,
+    marginTop: 4,
   },
   modalCatBtn: {
-    backgroundColor: colors.surfaceHighlight,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 6,
+    backgroundColor: colors.surfaceRaised,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: radius.sm,
     borderWidth: 1,
     borderColor: colors.border,
   },
@@ -381,12 +699,12 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accentSubtle,
   },
   modalCatText: {
-    fontSize: 12,
+    fontSize: 13,
     color: colors.textSecondary,
-    fontFamily: typography.fontFamilyMono,
+    fontFamily: typography.fontFamily,
   },
   modalCatTextActive: {
     color: colors.accent,
-    fontWeight: '600',
+    fontWeight: '700',
   },
 });

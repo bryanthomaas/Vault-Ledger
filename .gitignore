@@ -25,10 +25,11 @@ expo-env.d.ts
 .env.*
 !.env.example
 
-# Testing
+# Testing & Runtime Data
 playwright-report/
 test-results/
 blob-report/
+data/
 
 # OS / editors
 .DS_Store

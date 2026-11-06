@@ -44,7 +44,7 @@ export const refreshTokens = pgTable(
 );
 
 // ==========================================
-// Accounts & Double-Entry Ledger
+// Accounts & Ledger Core
 // ==========================================
 
 export const accounts = pgTable(

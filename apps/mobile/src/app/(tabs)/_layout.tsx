@@ -12,7 +12,7 @@ import { useAuthStore } from '../../store/authStore';
 import { colors, typography, spacing } from '../../theme/tokens';
 import { Button } from '../../components/Button';
 import { IconShieldLock } from '../../components/Icons';
-import { ThemeToggle } from '../../components/ThemeToggle';
+import { VaultLogo } from '../../components/VaultLogo';
 
 export default function TabsLayout() {
   const { width } = useWindowDimensions();
@@ -26,12 +26,12 @@ export default function TabsLayout() {
           <View style={styles.lockIconCircle}>
             <IconShieldLock size={26} color={colors.accent} strokeWidth={2} />
           </View>
-          <Text style={styles.lockTitle}>Vault Ledger Locked</Text>
+          <Text style={styles.lockTitle}>Ledger Session Locked</Text>
           <Text style={styles.lockDesc}>
-            Biometric authentication is required to access your financial data.
+            Authentication required to access ledger accounts.
           </Text>
           <Button
-            title="Unlock Vault"
+            title="Unlock Ledger"
             onPress={unlockBiometric}
             variant="primary"
             style={{ width: '100%', marginTop: spacing.md }}
@@ -54,12 +54,9 @@ export default function TabsLayout() {
         <View style={styles.mobileLayout}>
           <View style={styles.mobileHeader}>
             <View style={styles.mobileBrand}>
-              <View style={styles.miniLogoBadge}>
-                <Text style={styles.miniLogoText}>VL</Text>
-              </View>
-              <Text style={styles.mobileBrandTitle}>VAULT LEDGER</Text>
+              <VaultLogo size={24} />
+              <Text style={styles.mobileBrandTitle}>Vault Ledger</Text>
             </View>
-            <ThemeToggle variant="icon" />
           </View>
           <View style={styles.mobileContent}>
             <Slot />
@@ -74,22 +71,32 @@ export default function TabsLayout() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    minHeight: Platform.OS === 'web' ? ('100vh' as any) : '100%',
+    height: Platform.OS === 'web' ? ('100vh' as any) : '100%',
+    maxHeight: Platform.OS === 'web' ? ('100vh' as any) : '100%',
+    overflow: 'hidden',
     backgroundColor: colors.background,
   },
   desktopLayout: {
     flex: 1,
-    minHeight: Platform.OS === 'web' ? ('100vh' as any) : '100%',
+    height: Platform.OS === 'web' ? ('100vh' as any) : '100%',
+    maxHeight: Platform.OS === 'web' ? ('100vh' as any) : '100%',
+    overflow: 'hidden',
     flexDirection: 'row',
   },
   desktopContent: {
     flex: 1,
-    minHeight: Platform.OS === 'web' ? ('100vh' as any) : '100%',
+    height: Platform.OS === 'web' ? ('100vh' as any) : '100%',
+    maxHeight: Platform.OS === 'web' ? ('100vh' as any) : '100%',
+    overflow: 'hidden',
+    display: 'flex',
+    flexDirection: 'column',
     backgroundColor: colors.background,
   },
   mobileLayout: {
     flex: 1,
-    minHeight: Platform.OS === 'web' ? ('100vh' as any) : '100%',
+    height: Platform.OS === 'web' ? ('100vh' as any) : '100%',
+    maxHeight: Platform.OS === 'web' ? ('100vh' as any) : '100%',
+    overflow: 'hidden',
     flexDirection: 'column',
   },
   mobileHeader: {
@@ -107,25 +114,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
-  miniLogoBadge: {
-    width: 24,
-    height: 24,
-    borderRadius: 6,
-    backgroundColor: colors.accent,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   miniLogoText: {
-    color: '#FFFFFF',
+    color: colors.accent,
     fontWeight: '800',
-    fontSize: 10,
-    fontFamily: typography.fontFamilyMono,
+    fontSize: 13,
+    letterSpacing: 0.5,
+    fontFamily: typography.fontFamilySerif,
   },
   mobileBrandTitle: {
     color: colors.textPrimary,
-    fontWeight: '800',
-    fontSize: 12,
-    letterSpacing: 1.1,
+    fontWeight: '600',
+    fontSize: 14,
+    letterSpacing: -0.2,
     fontFamily: typography.fontFamily,
   },
   mobileContent: {

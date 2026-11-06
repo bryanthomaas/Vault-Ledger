@@ -4,10 +4,11 @@ import {
   Text,
   StyleSheet,
   ActivityIndicator,
+  Platform,
   type ViewStyle,
   type TextStyle,
 } from 'react-native';
-import { colors, leafRadius } from '../theme/tokens';
+import { colors, radius, typography } from '../theme/tokens';
 
 interface ButtonProps {
   title: string;
@@ -34,9 +35,13 @@ export const Button: React.FC<ButtonProps> = ({
 }) => {
   return (
     <TouchableOpacity
+      accessibilityRole="button"
+      accessibilityLabel={title}
+      aria-label={title}
+      {...({ className: 'vl-btn', dataSet: { button: 'true' } } as any)}
       onPress={onPress}
       disabled={disabled || loading}
-      activeOpacity={0.82}
+      activeOpacity={0.85}
       style={[
         styles.base,
         styles[variant],
@@ -49,7 +54,7 @@ export const Button: React.FC<ButtonProps> = ({
         <ActivityIndicator size="small" color={variant === 'primary' ? '#FFFFFF' : colors.accent} />
       ) : (
         <>
-          {icon && <span style={{ display: 'inline-flex', marginRight: 8, alignItems: 'center' }}>{icon}</span>}
+          {icon && <span style={{ display: 'inline-flex', marginRight: 6, alignItems: 'center' }}>{icon}</span>}
           <Text style={[styles.text, styles[`${variant}Text`], textStyle]}>{title}</Text>
         </>
       )}
@@ -59,67 +64,71 @@ export const Button: React.FC<ButtonProps> = ({
 
 const styles = StyleSheet.create({
   base: {
-    borderRadius: 8,
+    borderRadius: radius.md,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
   },
   sm: {
-    paddingVertical: 8,
-    paddingHorizontal: 14,
+    height: 32,
+    paddingHorizontal: 12,
   },
   md: {
-    paddingVertical: 12,
-    paddingHorizontal: 18,
+    height: 36,
+    paddingHorizontal: 16,
   },
   lg: {
-    paddingVertical: 14,
-    paddingHorizontal: 26,
+    height: 42,
+    paddingHorizontal: 20,
   },
   primary: {
     backgroundColor: colors.accent,
-    ...leafRadius.asymmetric,
-    shadowColor: '#285430',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.18,
-    shadowRadius: 10,
-    elevation: 3,
+    borderRadius: radius.md,
+    ...(Platform.OS === 'web'
+      ? ({
+          boxShadow: '0 1px 2px rgba(0,0,0,0.06)',
+        } as any)
+      : {}),
   },
   primaryText: {
     color: '#FFFFFF',
-    fontWeight: '700',
-    fontSize: 15,
-    letterSpacing: 0.2,
+    fontWeight: '500',
+    fontSize: 14,
+    fontFamily: typography.fontFamily,
   },
   secondary: {
     backgroundColor: colors.surfaceSubtle,
     borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderRadius: 10,
+    borderColor: colors.border,
+    borderRadius: radius.md,
   },
   secondaryText: {
     color: colors.textPrimary,
-    fontWeight: '600',
-    fontSize: 15,
+    fontWeight: '500',
+    fontSize: 14,
+    fontFamily: typography.fontFamily,
   },
   outline: {
     backgroundColor: 'transparent',
-    borderWidth: 1.25,
-    borderColor: colors.accentBorder,
-    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    borderRadius: radius.md,
   },
   outlineText: {
-    color: colors.accent,
-    fontWeight: '600',
-    fontSize: 15,
+    color: colors.textPrimary,
+    fontWeight: '500',
+    fontSize: 14,
+    fontFamily: typography.fontFamily,
   },
   ghost: {
     backgroundColor: 'transparent',
+    borderRadius: radius.md,
   },
   ghostText: {
     color: colors.textSecondary,
     fontWeight: '500',
-    fontSize: 15,
+    fontSize: 14,
+    fontFamily: typography.fontFamily,
   },
   text: {
     textAlign: 'center',

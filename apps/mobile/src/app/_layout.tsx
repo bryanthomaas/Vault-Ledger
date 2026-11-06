@@ -4,7 +4,6 @@ import { StatusBar } from 'expo-status-bar';
 import { Slot, useRouter, useSegments } from 'expo-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuthStore } from '../store/authStore';
-import { useThemeStore } from '../store/themeStore';
 import { colors } from '../theme/tokens';
 
 const queryClient = new QueryClient({
@@ -17,14 +16,35 @@ const queryClient = new QueryClient({
 });
 
 function RootNavigator() {
-  const { isAuthenticated, isLocked, isLoading, checkSession } = useAuthStore();
-  const { isDark, initTheme } = useThemeStore();
+  const { isAuthenticated, isLoading, checkSession } = useAuthStore();
   const segments = useSegments();
   const router = useRouter();
 
+  // Enforce permanent dark theme and custom brand favicon on web
   useEffect(() => {
     checkSession();
-    initTheme();
+    if (Platform.OS === 'web' && typeof document !== 'undefined') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      document.documentElement.classList.add('dark');
+      document.title = 'Vault Ledger';
+
+      const svgFavicon = encodeURIComponent(
+        `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">` +
+          `<rect x="4" y="4" width="92" height="92" rx="22" fill="#121324" stroke="#FF5A1F" stroke-width="4"/>` +
+          `<path d="M 56 26 L 56 72 L 80 72" stroke="#8D8DF5" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>` +
+          `<path d="M 20 26 L 40 72 L 60 26" stroke="#FF5A1F" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>` +
+        `</svg>`
+      );
+      const dataUrl = `data:image/svg+xml,${svgFavicon}`;
+      const existingIcons = document.querySelectorAll('link[rel*="icon"]');
+      existingIcons.forEach((el) => el.parentNode?.removeChild(el));
+
+      const link = document.createElement('link');
+      link.rel = 'icon';
+      link.type = 'image/svg+xml';
+      link.href = dataUrl;
+      document.head.appendChild(link);
+    }
   }, []);
 
   useEffect(() => {
@@ -33,11 +53,9 @@ function RootNavigator() {
     const inAuthGroup = segments[0] === '(auth)';
 
     if (!isAuthenticated && !inAuthGroup) {
-      // Redirect unauthenticated users to login
       router.replace('/(auth)/login');
     } else if (isAuthenticated && inAuthGroup) {
-      // Redirect authenticated users to app dashboard
-      router.replace('/(tabs)/');
+      router.replace('/(tabs)');
     }
   }, [isAuthenticated, isLoading, segments]);
 
@@ -49,151 +67,274 @@ function RootNavigator() {
     );
   }
 
+  const pageKey = segments.join('/') || 'root';
+
   return (
     <View style={styles.container}>
-      <StatusBar style={isDark ? 'light' : 'dark'} />
+      <StatusBar style="light" />
       {Platform.OS === 'web' && (
         <style
           dangerouslySetInnerHTML={{
             __html: `
-              @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+              /* Exclusively Fraunces and Instrument Serif with JetBrains Mono for tabular data */
+              @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..800;1,9..144,300..800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
-              :root {
-                --vl-bg: #F4EFEA;
-                --vl-canvas: #F4EFEA;
-                --vl-canvas-muted: #EDE5DC;
-                --vl-surface: #FAF7F2;
-                --vl-surface-subtle: #F2EBE1;
-                --vl-surface-highlight: #EAE1D5;
-                --vl-surface-elevated: #FFFFFF;
-                --vl-sand: #EDE5DC;
-                --vl-sand-subtle: #C5B8A8;
-                --vl-sand-muted: #968D84;
-                --vl-wood-warm: #54463A;
-                --vl-border: rgba(32, 30, 27, 0.08);
-                --vl-border-strong: rgba(32, 30, 27, 0.16);
-                --vl-text-primary: #201E1B;
-                --vl-text-secondary: #635C54;
-                --vl-text-tertiary: #968D84;
-                --vl-accent: #285430;
-                --vl-accent-hover: #1E432A;
-                --vl-accent-subtle: rgba(40, 84, 48, 0.12);
-                --vl-accent-border: rgba(40, 84, 48, 0.28);
-                --vl-positive: #2D6A4F;
-                --vl-positive-subtle: rgba(45, 106, 79, 0.12);
-                --vl-positive-border: rgba(45, 106, 79, 0.28);
-                --vl-negative: #B94A3E;
-                --vl-negative-subtle: rgba(185, 74, 62, 0.12);
-                --vl-negative-border: rgba(185, 74, 62, 0.28);
-                --vl-warning: #C47B27;
-                --vl-warning-subtle: rgba(196, 123, 39, 0.12);
-                --vl-warning-border: rgba(196, 123, 39, 0.28);
+              /* Wayglim Palette (Dark Theme) */
+              :root, [data-theme="dark"], body {
+                --vl-bg: #0A0B14;
+                --vl-canvas: #0A0B14;
+                --vl-canvas-muted: #07070F;
+                --vl-surface: #121324;
+                --vl-surface-subtle: #17192E;
+                --vl-surface-raised: #1F223D;
+                --vl-surface-highlight: #272B4E;
+                --vl-surface-elevated: #1A1E38;
+                --vl-surface-glass: rgba(18, 19, 36, 0.88);
+                --vl-glass-border: rgba(141, 141, 245, 0.20);
+                --vl-glass-highlight: rgba(141, 141, 245, 0.32);
+                --vl-electric-blue: #8D8DF5;
+                --vl-electric-blue-deep: #6A6AE0;
+                --vl-electric-blue-subtle: rgba(141, 141, 245, 0.14);
+                --vl-electric-blue-border: rgba(141, 141, 245, 0.28);
+                --vl-border: rgba(141, 141, 245, 0.16);
+                --vl-border-strong: rgba(141, 141, 245, 0.34);
+                --vl-text-primary: #FFFFFF;
+                --vl-text-secondary: #C8CCEE;
+                --vl-text-tertiary: #7F84B2;
+                --vl-sand: #17192E;
+                --vl-sand-subtle: #1F223D;
+                --vl-sand-muted: #7F84B2;
+                --vl-wood-warm: #272B4E;
+                --vl-accent: #FF5A1F;
+                --vl-accent-hover: #E84A12;
+                --vl-accent-subtle: rgba(255, 90, 31, 0.15);
+                --vl-accent-border: rgba(255, 90, 31, 0.45);
+                --vl-accent-gold: #FFB03A;
+                --vl-accent-peach: #FF8A5C;
+                --vl-iris-violet: #8D8DF5;
+                --vl-crimson: #E8243C;
+                --vl-positive: #10B981;
+                --vl-positive-subtle: rgba(16, 185, 129, 0.14);
+                --vl-positive-border: rgba(16, 185, 129, 0.3);
+                --vl-negative: #E8243C;
+                --vl-negative-subtle: rgba(232, 36, 60, 0.14);
+                --vl-negative-border: rgba(232, 36, 60, 0.3);
+                --vl-warning: #FFB03A;
+                --vl-warning-subtle: rgba(255, 176, 58, 0.14);
+                --vl-warning-border: rgba(255, 176, 58, 0.35);
               }
 
-              [data-theme="dark"], body.dark {
-                --vl-bg: #141312;
-                --vl-canvas: #141312;
-                --vl-canvas-muted: #1B1917;
-                --vl-surface: #1E1C19;
-                --vl-surface-subtle: #262420;
-                --vl-surface-highlight: #322E29;
-                --vl-surface-elevated: #282521;
-                --vl-sand: #342F29;
-                --vl-sand-subtle: #5C544B;
-                --vl-sand-muted: #8A8074;
-                --vl-wood-warm: #C4B5A5;
-                --vl-border: rgba(237, 229, 220, 0.10);
-                --vl-border-strong: rgba(237, 229, 220, 0.18);
-                --vl-text-primary: #F5EFEB;
-                --vl-text-secondary: #B8AFA5;
-                --vl-text-tertiary: #7D756C;
-                --vl-accent: #3E8E56;
-                --vl-accent-hover: #4BAA69;
-                --vl-accent-subtle: rgba(62, 142, 86, 0.20);
-                --vl-accent-border: rgba(62, 142, 86, 0.35);
-                --vl-positive: #4CAF79;
-                --vl-positive-subtle: rgba(76, 175, 121, 0.20);
-                --vl-positive-border: rgba(76, 175, 121, 0.35);
-                --vl-negative: #E06D5E;
-                --vl-negative-subtle: rgba(224, 109, 94, 0.20);
-                --vl-negative-border: rgba(224, 109, 94, 0.35);
-                --vl-warning: #E5A144;
-                --vl-warning-subtle: rgba(229, 161, 68, 0.20);
-                --vl-warning-border: rgba(229, 161, 68, 0.35);
+              /* Non-scrollable Fixed Viewport Shell */
+              html, body, #root, [data-testid="root"] {
+                background-color: #0A0B14 !important;
+                color: #FFFFFF !important;
+                font-family: 'Fraunces', Georgia, serif !important;
+                margin: 0;
+                padding: 0;
+                height: 100vh !important;
+                max-height: 100vh !important;
+                overflow: hidden !important;
               }
 
-              html, body {
-                scroll-behavior: smooth !important;
-                background-color: var(--vl-bg) !important;
-                font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-                color: var(--vl-text-primary) !important;
-                transition: background-color 0.2s ease, color 0.2s ease;
+              /* Font Assignment */
+              div, span, p, a, button, input, textarea {
+                font-family: 'Fraunces', Georgia, serif !important;
               }
 
-              /* Light mode background texture */
-              html:not([data-theme="dark"]) body {
-                background-image: 
-                  repeating-linear-gradient(90deg, 
-                    rgba(32, 30, 27, 0.012) 0px, 
-                    rgba(32, 30, 27, 0.012) 1px, 
-                    transparent 1px, 
-                    transparent 14px
-                  ),
-                  radial-gradient(rgba(180, 160, 140, 0.07) 1px, transparent 1px),
-                  linear-gradient(180deg, #F7F3EE 0%, #F4EFEA 50%, #EDE6DD 100%) !important;
-                background-size: auto, 16px 16px, 100% 100% !important;
+              code, pre, kbd, samp, .font-mono, [data-mono="true"] {
+                font-family: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace !important;
               }
 
-              /* Dark mode background texture */
-              html[data-theme="dark"] body, body.dark {
-                background-image: 
-                  repeating-linear-gradient(90deg, 
-                    rgba(237, 229, 220, 0.012) 0px, 
-                    rgba(237, 229, 220, 0.012) 1px, 
-                    transparent 1px, 
-                    transparent 14px
-                  ),
-                  radial-gradient(rgba(237, 229, 220, 0.035) 1px, transparent 1px),
-                  linear-gradient(180deg, #181614 0%, #141312 50%, #0F0E0D 100%) !important;
-                background-size: auto, 16px 16px, 100% 100% !important;
+              h1, h2, h3, [data-serif="true"], .display-serif {
+                font-family: 'Instrument Serif', Georgia, serif !important;
+                font-weight: 400 !important;
+                letter-spacing: -0.3px;
               }
 
-              /* Smooth minimal scrollbars */
+              /* Page Transition Animation */
+              @keyframes vlPageTransitionIn {
+                0% {
+                  opacity: 0;
+                  transform: translateY(6px);
+                }
+                100% {
+                  opacity: 1;
+                  transform: translateY(0);
+                }
+              }
+
+              .vl-page-transition {
+                animation: vlPageTransitionIn 0.24s cubic-bezier(0.16, 1, 0.3, 1) both;
+                display: flex;
+                flex: 1;
+                flex-direction: column;
+                width: 100%;
+                height: 100vh !important;
+                max-height: 100vh !important;
+                overflow: hidden !important;
+              }
+
+              /* Wayglim Iris & Tangerine Surfaces */
+              .vl-glass-card,
+              .vl-card,
+              [data-surface="card"] {
+                background-color: var(--vl-surface) !important;
+                border: 1px solid var(--vl-border) !important;
+                box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(141, 141, 245, 0.12) !important;
+                transition: border-color 0.16s ease !important;
+              }
+
+              /* Sidebar & Navigation */
+              #vl-desktop-sidebar {
+                background-color: var(--vl-surface) !important;
+                border-right: 1px solid var(--vl-border) !important;
+              }
+
+              #vl-mobile-tab-bar {
+                background-color: var(--vl-surface) !important;
+                border-top: 1px solid var(--vl-border) !important;
+              }
+
+              /* Minimal Scrollbars */
               ::-webkit-scrollbar {
-                width: 7px;
-                height: 7px;
+                width: 6px;
+                height: 6px;
               }
               ::-webkit-scrollbar-track {
-                background: var(--vl-sand);
+                background: #0A0B14;
               }
               ::-webkit-scrollbar-thumb {
-                background: var(--vl-sand-subtle);
-                border-radius: 4px;
+                background: #1A253D;
+                border-radius: 3px;
+                border: 1px solid rgba(141, 141, 245, 0.2);
               }
               ::-webkit-scrollbar-thumb:hover {
-                background: var(--vl-accent);
+                background: #8D8DF5;
               }
 
-              /* Ceramic cards depth & sand border */
-              div[style*="background-color: rgb(250, 247, 242)"],
-              div[style*="background-color: #FAF7F2"],
-              div[style*="background-color: #faf7f2"],
-              div[style*="var(--vl-surface"] {
-                box-shadow: 0 4px 20px -4px rgba(45, 38, 30, 0.06), 0 1px 3px rgba(45, 38, 30, 0.04) !important;
-                transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+              /* Interactive Cursor, Micro-interactions & Tactile Feedback */
+              button,
+              div[role="button"],
+              [data-button="true"],
+              a,
+              .vl-clickable {
+                cursor: pointer !important;
+                transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1),
+                            background-color 0.15s ease,
+                            border-color 0.15s ease,
+                            box-shadow 0.15s ease,
+                            color 0.15s ease !important;
               }
 
-              [data-theme="dark"] div[style*="background-color: rgb(250, 247, 242)"],
-              [data-theme="dark"] div[style*="background-color: #FAF7F2"],
-              [data-theme="dark"] div[style*="background-color: #faf7f2"],
-              [data-theme="dark"] div[style*="var(--vl-surface"] {
-                box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.55), 0 1px 4px rgba(0, 0, 0, 0.4) !important;
+              /* Button Active Press Compression */
+              button:active,
+              div[role="button"]:active,
+              [data-button="true"]:active {
+                transform: scale(0.98) !important;
+              }
+
+              /* Accessible Wayglim Focus Rings */
+              :focus-visible {
+                outline: 2px solid var(--vl-iris-violet) !important;
+                outline-offset: 2px !important;
+              }
+
+              button:focus-visible,
+              div[role="button"]:focus-visible,
+              a:focus-visible,
+              [tabindex="0"]:focus-visible {
+                outline: 2px solid var(--vl-iris-violet) !important;
+                outline-offset: 2px !important;
+                box-shadow: 0 0 0 3px rgba(141, 141, 245, 0.28) !important;
+              }
+
+              /* Form Inputs Focus Ring (Overrides outlineStyle: none) */
+              input:focus,
+              input:focus-visible,
+              textarea:focus,
+              textarea:focus-visible {
+                outline: none !important;
+                border-color: var(--vl-iris-violet) !important;
+                box-shadow: 0 0 0 2px rgba(141, 141, 245, 0.25) !important;
+              }
+
+              /* Interactive Table Rows Hover Feedback */
+              .vl-interactive-row,
+              [data-interactive="row"] {
+                cursor: pointer !important;
+                transition: background-color 0.14s ease, border-color 0.14s ease !important;
+              }
+              .vl-interactive-row:hover,
+              [data-interactive="row"]:hover {
+                background-color: rgba(141, 141, 245, 0.06) !important;
+              }
+              .vl-interactive-row:active,
+              [data-interactive="row"]:active {
+                background-color: rgba(141, 141, 245, 0.10) !important;
+                transform: scale(0.998) !important;
+              }
+
+              /* Interactive Cards Hover Feedback */
+              .vl-interactive-card,
+              [data-interactive="card"] {
+                transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+                            box-shadow 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+                            border-color 0.18s ease !important;
+              }
+              .vl-interactive-card:hover,
+              [data-interactive="card"]:hover {
+                border-color: rgba(141, 141, 245, 0.35) !important;
+                box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(141, 141, 245, 0.20) !important;
+                transform: translateY(-1px) !important;
+              }
+
+              /* Navigation Items Hover Feedback */
+              .vl-nav-item,
+              [data-interactive="nav"] {
+                cursor: pointer !important;
+                transition: background-color 0.15s ease, color 0.15s ease !important;
+              }
+              .vl-nav-item:hover {
+                background-color: rgba(141, 141, 245, 0.08) !important;
+              }
+
+              /* Engine Switcher Tactile Badge */
+              .vl-engine-badge {
+                cursor: pointer !important;
+                transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+                            box-shadow 0.18s ease,
+                            border-color 0.18s ease,
+                            background-color 0.18s ease !important;
+              }
+              .vl-engine-badge:hover {
+                background-color: rgba(26, 28, 54, 0.92) !important;
+                border-color: rgba(141, 141, 245, 0.45) !important;
+                box-shadow: 0 4px 16px rgba(141, 141, 245, 0.22), 0 0 0 1px rgba(141, 141, 245, 0.25) !important;
+                transform: translateY(-1px) !important;
+              }
+              .vl-engine-badge:active {
+                transform: translateY(1px) scale(0.98) !important;
+              }
+
+              /* Reduced Motion: preserve layout transforms (like active tab indicator) */
+              @media (prefers-reduced-motion: reduce) {
+                *,
+                *::before,
+                *::after {
+                  scroll-behavior: auto !important;
+                }
               }
             `,
           }}
         />
       )}
-      <Slot />
+      <View
+        key={pageKey}
+        style={styles.transitionWrapper}
+        {...(Platform.OS === 'web' ? ({ className: 'vl-page-transition' } as any) : {})}
+      >
+        <Slot />
+      </View>
     </View>
   );
 }
@@ -209,14 +350,24 @@ export default function Layout() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
-    minHeight: Platform.OS === 'web' ? ('100vh' as any) : '100%',
+    backgroundColor: '#0A0B14',
+    height: Platform.OS === 'web' ? ('100vh' as any) : '100%',
+    maxHeight: Platform.OS === 'web' ? ('100vh' as any) : '100%',
+    overflow: 'hidden',
+  },
+  transitionWrapper: {
+    flex: 1,
+    height: Platform.OS === 'web' ? ('100vh' as any) : '100%',
+    maxHeight: Platform.OS === 'web' ? ('100vh' as any) : '100%',
+    overflow: 'hidden',
   },
   loadingContainer: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: '#0A0B14',
     justifyContent: 'center',
     alignItems: 'center',
-    minHeight: Platform.OS === 'web' ? ('100vh' as any) : '100%',
+    height: Platform.OS === 'web' ? ('100vh' as any) : '100%',
+    maxHeight: Platform.OS === 'web' ? ('100vh' as any) : '100%',
+    overflow: 'hidden',
   },
 });

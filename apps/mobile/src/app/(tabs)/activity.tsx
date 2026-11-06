@@ -7,12 +7,14 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
+  Platform,
 } from 'react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '../../api/client';
 import { colors, typography, spacing } from '../../theme/tokens';
 import { Badge } from '../../components/Badge';
 import { Button } from '../../components/Button';
+import { PaginationBar } from '../../components/PaginationBar';
 import {
   IconRules,
   IconAlertTriangle,
@@ -108,164 +110,179 @@ export default function ActivityScreen() {
     }
   };
 
+  const PAGE_SIZE = 4;
+  const [currentPage, setCurrentPage] = useState(1);
+
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / PAGE_SIZE));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const paginatedItems = filteredItems.slice((safeCurrentPage - 1) * PAGE_SIZE, safeCurrentPage * PAGE_SIZE);
+
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.content}
-      refreshControl={
-        <RefreshControl
-          refreshing={isRefetching}
-          onRefresh={() => {
-            refetch();
-          }}
-          tintColor={colors.accent}
-        />
-      }
-    >
-      <View style={styles.headerRow}>
-        <View>
-          <Text style={styles.title}>ACTIVITY & AUDIT LOG</Text>
-          <Text style={styles.subtitle}>
-            Outbox events, automated rule triggers & budget alerts
-          </Text>
+    <View style={styles.container}>
+      <View style={styles.content}>
+        <View style={styles.headerRow}>
+          <View>
+            <Text style={styles.title}>Activity & audit log</Text>
+            <Text style={styles.subtitle}>
+              Audit trail of automated postings, rule triggers, and balance alerts
+            </Text>
+          </View>
+          {unreadCount > 0 && (
+            <Button
+              title={`Mark all read (${unreadCount})`}
+              onPress={() => markAllReadMutation.mutate()}
+              variant="secondary"
+              loading={markAllReadMutation.isPending}
+            />
+          )}
         </View>
-        {unreadCount > 0 && (
-          <Button
-            title={`Mark All Read (${unreadCount})`}
-            onPress={() => markAllReadMutation.mutate()}
-            variant="secondary"
-            loading={markAllReadMutation.isPending}
-          />
-        )}
-      </View>
 
-      {/* Filter Chips */}
-      <View style={styles.filterRow}>
-        {(
-          [
-            { key: 'all', label: `All (${Array.isArray(notifications) ? notifications.length : 0})` },
-            { key: 'rule_fired', label: 'Rules' },
-            { key: 'budget_alert', label: 'Budgets' },
-            { key: 'recurring_detected', label: 'Recurring' },
-            { key: 'system', label: 'System' },
-          ] as const
-        ).map((f) => {
-          const isActive = selectedFilter === f.key;
-          return (
-            <TouchableOpacity
-              key={f.key}
-              onPress={() => setSelectedFilter(f.key)}
-              style={[styles.filterChip, isActive && styles.filterChipActive]}
-            >
-              <Text style={[styles.filterChipText, isActive && styles.filterChipTextActive]}>
-                {f.label}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-
-      {/* Notifications List */}
-      {isLoading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator color={colors.accent} size="large" />
-          <Text style={styles.loadingText}>Fetching activity stream...</Text>
-        </View>
-      ) : filteredItems.length === 0 ? (
-        <View style={styles.emptyCard}>
-          <IconInboxEmpty size={38} color={colors.textTertiary} />
-          <Text style={styles.emptyTitle}>No Activity Recorded</Text>
-          <Text style={styles.emptyDesc}>
-            {selectedFilter === 'all'
-              ? 'As the background outbox worker processes automated rules and monitors budgets, log entries will appear here.'
-              : `No events found for filter "${selectedFilter}".`}
-          </Text>
-        </View>
-      ) : (
-        <View style={styles.list}>
-          {filteredItems.map((item) => {
-            const meta = getTypeMetadata(item.type);
-            const IconComponent = meta.icon;
-
+        {/* Filter Chips */}
+        <View style={styles.filterRow}>
+          {(
+            [
+              { key: 'all', label: `All (${Array.isArray(notifications) ? notifications.length : 0})` },
+              { key: 'rule_fired', label: 'Rules' },
+              { key: 'budget_alert', label: 'Budgets' },
+              { key: 'recurring_detected', label: 'Recurring' },
+              { key: 'system', label: 'System' },
+            ] as const
+          ).map((f) => {
+            const isActive = selectedFilter === f.key;
             return (
               <TouchableOpacity
-                key={item.id}
-                activeOpacity={0.8}
-                onPress={() => {
-                  if (!item.read) {
-                    markReadMutation.mutate(item.id);
-                  }
-                }}
-                style={[styles.card, !item.read && styles.cardUnread]}
+                key={f.key}
+                onPress={() => setSelectedFilter(f.key)}
+                style={[styles.filterTab, isActive && styles.filterTabActive]}
               >
-                <View style={styles.cardHeader}>
-                  <View style={styles.typeBadgeRow}>
-                    <View style={styles.typeIconBox}>
-                      <IconComponent
-                        size={15}
-                        color={
-                          meta.variant === 'accent'
-                            ? colors.accent
-                            : meta.variant === 'negative'
-                            ? colors.negative
-                            : colors.textSecondary
-                        }
-                      />
-                    </View>
-                    <Badge label={meta.label} variant={meta.variant} />
-                    {!item.read && (
-                      <View style={styles.unreadDotBadge}>
-                        <Text style={styles.unreadDotText}>NEW</Text>
-                      </View>
-                    )}
-                  </View>
-                  <Text style={styles.timestamp}>{formatDate(item.createdAt)}</Text>
-                </View>
-
-                <Text style={styles.cardTitle}>{item.title}</Text>
-                <Text style={styles.cardMessage}>{item.message}</Text>
-
-                {item.metadata && Object.keys(item.metadata).length > 0 && (
-                  <View style={styles.metadataBox}>
-                    {Object.entries(item.metadata).map(([key, val]) => (
-                      <View key={key} style={styles.metaRow}>
-                        <Text style={styles.metaKey}>{key}:</Text>
-                        <Text style={styles.metaVal}>{String(val)}</Text>
-                      </View>
-                    ))}
-                  </View>
-                )}
+                <Text style={[styles.filterTabText, isActive && styles.filterTabTextActive]}>
+                  {f.label}
+                </Text>
               </TouchableOpacity>
             );
           })}
         </View>
-      )}
-    </ScrollView>
+
+        {/* Notifications List */}
+        {isLoading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator color={colors.accent} size="large" />
+            <Text style={styles.loadingText}>Loading audit trail...</Text>
+          </View>
+        ) : filteredItems.length === 0 ? (
+          <View style={styles.emptyCard}>
+            <IconInboxEmpty size={38} color={colors.textTertiary} />
+            <Text style={styles.emptyTitle}>No Audit Events Recorded</Text>
+            <Text style={styles.emptyDesc}>
+              {selectedFilter === 'all'
+                ? 'When automated rules execute and budget thresholds trigger, audit entries will post here.'
+                : `No events found for filter "${selectedFilter}".`}
+            </Text>
+          </View>
+        ) : (
+          <View style={styles.list}>
+            {paginatedItems.map((item) => {
+              const meta = getTypeMetadata(item.type);
+              const IconComponent = meta.icon;
+
+              return (
+                <TouchableOpacity
+                  key={item.id}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Notification: ${item.title}`}
+                  {...(Platform.OS === 'web' ? ({ className: 'vl-interactive-card' } as any) : {})}
+                  activeOpacity={0.8}
+                  onPress={() => {
+                    if (!item.read) {
+                      markReadMutation.mutate(item.id);
+                    }
+                  }}
+                  style={[styles.card, !item.read && styles.cardUnread]}
+                >
+                  <View style={styles.cardHeader}>
+                    <View style={styles.typeBadgeRow}>
+                      <View style={styles.typeIconBox}>
+                        <IconComponent
+                          size={15}
+                          color={
+                            meta.variant === 'accent'
+                              ? colors.accent
+                              : meta.variant === 'negative'
+                              ? colors.negative
+                              : colors.textSecondary
+                          }
+                        />
+                      </View>
+                      <Badge label={meta.label} variant={meta.variant} />
+                      {!item.read && (
+                        <View style={styles.unreadDot} />
+                      )}
+                    </View>
+                    <Text style={styles.timestamp}>{formatDate(item.createdAt)}</Text>
+                  </View>
+
+                  <Text style={styles.cardTitle}>{item.title}</Text>
+                  <Text style={styles.cardMessage}>{item.message}</Text>
+
+                  {item.metadata && Object.keys(item.metadata).length > 0 && (
+                    <View style={styles.metadataBox}>
+                      {Object.entries(item.metadata).map(([key, val]) => (
+                        <View key={key} style={styles.metaRow}>
+                          <Text style={styles.metaKey}>{key}:</Text>
+                          <Text style={styles.metaVal}>{String(val)}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        )}
+      </View>
+
+      <PaginationBar
+        currentPage={safeCurrentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+        totalItems={filteredItems.length}
+        pageSize={PAGE_SIZE}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    height: '100%',
+    maxHeight: '100%',
+    overflow: 'hidden',
     backgroundColor: colors.background,
   },
   content: {
+    flex: 1,
     padding: spacing.xl,
     maxWidth: 1000,
     width: '100%',
     alignSelf: 'center',
+    paddingBottom: spacing.sm,
   },
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: spacing.lg,
+    marginBottom: spacing.md,
     flexWrap: 'wrap',
     gap: spacing.md,
   },
   title: {
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.textPrimary,
     fontFamily: typography.fontFamilySerif,
     letterSpacing: -0.3,
@@ -273,35 +290,32 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 13,
     color: colors.textSecondary,
-    marginTop: 4,
-    fontFamily: typography.fontFamily,
+    marginTop: 3,
+    fontFamily: typography.fontFamilyMono,
   },
   filterRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
-    marginBottom: spacing.lg,
+    marginBottom: spacing.md,
   },
-  filterChip: {
+  filterTab: {
     paddingVertical: 6,
-    paddingHorizontal: 14,
-    borderRadius: 9999,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    backgroundColor: colors.surface,
+    paddingHorizontal: 12,
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
   },
-  filterChipActive: {
-    borderColor: colors.accent,
-    backgroundColor: colors.accent,
+  filterTabActive: {
+    borderBottomColor: colors.accent,
   },
-  filterChipText: {
-    fontSize: 12,
-    color: colors.textSecondary,
+  filterTabText: {
+    fontSize: 13,
+    color: colors.textTertiary,
     fontFamily: typography.fontFamily,
     fontWeight: '500',
   },
-  filterChipTextActive: {
-    color: '#FFFFFF',
+  filterTabTextActive: {
+    color: colors.accent,
     fontWeight: '700',
   },
   loadingContainer: {
@@ -317,18 +331,24 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 14,
+    borderRadius: 12,
     padding: spacing.xxl,
     alignItems: 'center',
     marginTop: spacing.md,
-    shadowColor: '#2D261E',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 12,
+    ...(Platform.OS === 'web'
+      ? ({
+          boxShadow: '0 1px 2px rgba(0, 0, 0, 0.03)',
+        } as any)
+      : {
+          shadowColor: '#000000',
+          shadowOffset: { width: 0, height: 1 },
+          shadowOpacity: 0.03,
+          shadowRadius: 2,
+        }),
   },
   emptyTitle: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.textPrimary,
     marginTop: spacing.md,
     marginBottom: 6,
@@ -351,14 +371,20 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     borderRadius: 12,
     padding: spacing.lg,
-    shadowColor: '#2D261E',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.04,
-    shadowRadius: 10,
+    ...(Platform.OS === 'web'
+      ? ({
+          boxShadow: '0 1px 2px rgba(0, 0, 0, 0.03)',
+        } as any)
+      : {
+          shadowColor: '#000000',
+          shadowOffset: { width: 0, height: 1 },
+          shadowOpacity: 0.03,
+          shadowRadius: 2,
+        }),
   },
   cardUnread: {
-    borderColor: colors.accentBorder,
-    backgroundColor: colors.accentSubtle,
+    borderColor: colors.borderStrong,
+    backgroundColor: colors.surfaceRaised,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -377,21 +403,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  unreadDotBadge: {
-    backgroundColor: colors.accent,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  unreadDotText: {
-    color: '#FFFFFF',
-    fontSize: 9,
-    fontWeight: '800',
-    fontFamily: typography.fontFamilyMono,
+  unreadDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.irisViolet,
   },
   timestamp: {
-    fontSize: 11,
-    color: colors.textTertiary,
+    fontSize: 13,
+    color: colors.textSecondary,
     fontFamily: typography.fontFamilyMono,
   },
   cardTitle: {
@@ -409,8 +429,10 @@ const styles = StyleSheet.create({
   },
   metadataBox: {
     marginTop: spacing.md,
-    paddingTop: spacing.sm,
-    borderTopWidth: StyleSheet.hairlineWidth,
+    padding: spacing.sm,
+    backgroundColor: colors.canvasMuted,
+    borderRadius: 6,
+    borderWidth: 1,
     borderColor: colors.border,
     gap: 4,
   },
@@ -420,13 +442,13 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   metaKey: {
-    fontSize: 11,
-    color: colors.textTertiary,
+    fontSize: 13,
+    color: colors.textSecondary,
     fontFamily: typography.fontFamilyMono,
   },
   metaVal: {
-    fontSize: 11,
-    color: colors.textSecondary,
+    fontSize: 13,
+    color: colors.textPrimary,
     fontFamily: typography.fontFamilyMono,
   },
 });

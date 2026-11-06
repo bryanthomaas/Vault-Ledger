@@ -9,12 +9,14 @@ import {
   Modal,
   TextInput,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '../../api/client';
-import { colors, typography, spacing } from '../../theme/tokens';
+import { colors, typography, spacing, radius } from '../../theme/tokens';
 import { Badge } from '../../components/Badge';
 import { Button } from '../../components/Button';
+import { PaginationBar } from '../../components/PaginationBar';
 import { formatCurrency, type Rule, type Account } from '@vault-ledger/shared';
 
 export default function RulesScreen() {
@@ -64,6 +66,38 @@ export default function RulesScreen() {
     },
   });
 
+  // Delete rule mutation
+  const deleteRuleMutation = useMutation({
+    mutationFn: (id: string) =>
+      apiRequest(`/api/rules/${id}`, {
+        method: 'DELETE',
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['rules'] });
+    },
+  });
+
+  // Test execution mutation
+  const testExecutionMutation = useMutation({
+    mutationFn: () =>
+      apiRequest('/api/transactions', {
+        method: 'POST',
+        body: JSON.stringify({
+          description: 'Espresso (Automated Round-Up Test)',
+          merchant: 'Artisan Roasters',
+          amountCents: -425,
+          category: 'Coffee',
+          isRoundUp: true,
+          source: 'rule_execution',
+        }),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    },
+  });
+
   const handleCreateRule = () => {
     if (!vaultAccount || !checkingAccount) return;
 
@@ -94,86 +128,138 @@ export default function RulesScreen() {
     });
   };
 
+  const rulesList = Array.isArray(rulesQuery.data) ? rulesQuery.data : [];
+  const PAGE_SIZE = 3;
+  const [currentPage, setCurrentPage] = useState(1);
+  const totalPages = Math.max(1, Math.ceil(rulesList.length / PAGE_SIZE));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const paginatedRules = rulesList.slice((safeCurrentPage - 1) * PAGE_SIZE, safeCurrentPage * PAGE_SIZE);
+
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <View style={styles.headerRow}>
-        <View>
-          <Text style={styles.title}>AUTOMATION RULES</Text>
-          <Text style={styles.subtitle}>Event-driven ledger workers & algorithmic transfers</Text>
+    <View style={styles.container}>
+      <View style={styles.content}>
+        <View style={styles.headerRow}>
+          <View>
+            <Text style={styles.title}>Automation rules</Text>
+            <Text style={styles.subtitle}>Automated balance sweeps & transfer rules</Text>
+          </View>
+
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            <Button
+              title={testExecutionMutation.isPending ? 'Simulating...' : 'Test Execution'}
+              onPress={() => testExecutionMutation.mutate()}
+              loading={testExecutionMutation.isPending}
+              variant="outline"
+              size="sm"
+            />
+            <Button
+              title="+ New rule"
+              onPress={() => setModalVisible(true)}
+              variant="primary"
+              size="sm"
+            />
+          </View>
         </View>
 
-        <Button
-          title="+ New Rule"
-          onPress={() => setModalVisible(true)}
-          variant="primary"
-          size="sm"
-        />
-      </View>
+        {/* Rules Explanatory Banner */}
+        <View style={styles.infoBox}>
+          <Text style={styles.infoTitle}>Automated posting policy</Text>
+          <Text style={styles.infoText}>
+            Posted transactions trigger automated transfers between accounts. All executions
+            record balanced ledger postings with audit verification.
+          </Text>
+        </View>
 
-      {/* Rules Explanatory Banner */}
-      <View style={styles.infoBox}>
-        <Text style={styles.infoTitle}>Deterministic Outbox Architecture</Text>
-        <Text style={styles.infoText}>
-          When transactions are ingested, worker threads evaluate enabled rules asynchronously.
-          Transfers are executed as atomic double-entry postings with strict idempotency
-          constraints.
-        </Text>
-      </View>
+        {testExecutionMutation.isSuccess && (
+          <View style={styles.successBanner}>
+            <Text style={styles.successText}>
+              Rule executed: $0.75 round-up transaction posted and transferred to Reserve Savings.
+            </Text>
+          </View>
+        )}
 
-      {rulesQuery.isLoading ? (
-        <ActivityIndicator color={colors.accent} size="large" style={{ marginTop: 40 }} />
-      ) : (
-        <View style={styles.rulesList}>
-          {(Array.isArray(rulesQuery.data) ? rulesQuery.data : []).map((rule) => {
-            const isRoundUp = rule.type === 'round_up';
-            const isPercent = rule.type === 'percent_of_income';
-            const isSweep = rule.type === 'sweep';
+        {rulesQuery.isLoading ? (
+          <ActivityIndicator color={colors.accent} size="large" style={{ marginTop: 40 }} />
+        ) : (
+          <View style={styles.rulesList}>
+            {paginatedRules.map((rule) => {
+              const isRoundUp = rule.type === 'round_up';
+              const isPercent = rule.type === 'percent_of_income';
+              const isSweep = rule.type === 'sweep';
 
-            let description = '';
-            if (isRoundUp) {
-              description =
-                'Rounds up everyday expenses to the nearest dollar and transfers spare change into Savings Vault.';
-            } else if (isPercent) {
-              const cfg = rule.config as any;
-              description = `Automatically sweeps ${cfg.percentage || 10}% of any detected salary or income into Savings Vault.`;
-            } else if (isSweep) {
-              const cfg = rule.config as any;
-              description = `Sweeps checking balance in excess of ${formatCurrency(cfg.thresholdCents || 500000)} into Savings Vault.`;
-            }
+              let description = '';
+              if (isRoundUp) {
+                description =
+                  'Rounds up purchase debits to the nearest dollar and posts the difference to Reserve Savings.';
+              } else if (isPercent) {
+                const cfg = rule.config as any;
+                description = `Allocates ${cfg.percentage || 10}% of income credits into Reserve Savings.`;
+              } else if (isSweep) {
+                const cfg = rule.config as any;
+                description = `Sweeps checking balance in excess of ${formatCurrency(cfg.thresholdCents || 500000)} into Reserve Savings.`;
+              }
 
-            return (
-              <View key={rule.id} style={styles.ruleCard}>
-                <View style={styles.cardTopRow}>
-                  <View style={{ gap: 4, flex: 1, marginRight: 12 }}>
-                    <Text style={styles.ruleName}>{rule.name}</Text>
-                    <Badge
-                      label={rule.type.replace(/_/g, ' ').toUpperCase()}
-                      variant={rule.enabled ? 'accent' : 'default'}
+              return (
+                <View key={rule.id} style={styles.ruleCard}>
+                  <View style={styles.cardTopRow}>
+                    <View style={{ gap: 4, flex: 1, marginRight: 12 }}>
+                      <Text style={styles.ruleName}>{rule.name}</Text>
+                      <Badge
+                        label={
+                          rule.type === 'round_up'
+                            ? 'Round-up'
+                            : rule.type === 'percent_of_income'
+                              ? 'Income %'
+                              : 'Sweep'
+                        }
+                        variant={rule.enabled ? 'accent' : 'default'}
+                      />
+                    </View>
+
+                    <Switch
+                      value={rule.enabled}
+                      onValueChange={(val) => toggleMutation.mutate({ id: rule.id, enabled: val })}
+                      trackColor={{ false: colors.surfaceHighlight, true: colors.accentSubtle }}
+                      thumbColor={rule.enabled ? colors.accent : colors.textTertiary}
                     />
                   </View>
 
-                  <Switch
-                    value={rule.enabled}
-                    onValueChange={(val) => toggleMutation.mutate({ id: rule.id, enabled: val })}
-                    trackColor={{ false: colors.surfaceHighlight, true: colors.accentSubtle }}
-                    thumbColor={rule.enabled ? colors.accent : colors.textTertiary}
-                  />
-                </View>
+                  <Text style={styles.ruleDescription}>{description}</Text>
 
-                <Text style={styles.ruleDescription}>{description}</Text>
-              </View>
-            );
-          })}
-        </View>
-      )}
+                  <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 10 }}>
+                    <TouchableOpacity
+                      accessibilityRole="button"
+                      aria-label="Delete rule"
+                      onPress={() => deleteRuleMutation.mutate(rule.id)}
+                      style={{ paddingVertical: 4, paddingHorizontal: 8 }}
+                    >
+                      <Text style={{ color: colors.negative, fontSize: 13, fontWeight: '600', fontFamily: typography.fontFamily }}>
+                        Delete rule
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+        )}
+      </View>
+
+      <PaginationBar
+        currentPage={safeCurrentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+        totalItems={rulesList.length}
+        pageSize={PAGE_SIZE}
+      />
 
       {/* Create Rule Modal */}
       <Modal visible={modalVisible} transparent animationType="fade">
-        <View style={styles.modalBackdrop}>
-          <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>Configure Automation Rule</Text>
+        <View nativeID="vl-modal-backdrop" style={styles.modalBackdrop}>
+          <View nativeID="vl-modal-card" style={styles.modalCard}>
+            <Text style={styles.modalTitle}>New Automation Rule</Text>
             <Text style={styles.modalDesc}>
-              Set up automated background rules executed by the transactional outbox worker.
+              Configure automated transfer postings between ledger accounts.
             </Text>
 
             <View style={styles.tabRow}>
@@ -195,7 +281,7 @@ export default function RulesScreen() {
             </View>
 
             <View style={styles.formGroup}>
-              <Text style={styles.label}>RULE NAME</Text>
+              <Text style={styles.label}>Rule name</Text>
               <TextInput
                 style={styles.input}
                 placeholder="e.g. Daily Coffee Round-Up"
@@ -207,7 +293,7 @@ export default function RulesScreen() {
 
             {ruleType === 'percent_of_income' && (
               <View style={styles.formGroup}>
-                <Text style={styles.label}>PERCENTAGE TO SAVE (%)</Text>
+                <Text style={styles.label}>Income allocation (%)</Text>
                 <TextInput
                   style={styles.input}
                   placeholder="10"
@@ -221,7 +307,7 @@ export default function RulesScreen() {
 
             {ruleType === 'sweep' && (
               <View style={styles.formGroup}>
-                <Text style={styles.label}>CHECKING CEILING THRESHOLD ($)</Text>
+                <Text style={styles.label}>Operating balance ceiling ($)</Text>
                 <TextInput
                   style={styles.input}
                   placeholder="5000"
@@ -251,21 +337,25 @@ export default function RulesScreen() {
           </View>
         </View>
       </Modal>
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    height: '100%',
+    maxHeight: '100%',
+    overflow: 'hidden',
     backgroundColor: colors.background,
   },
   content: {
+    flex: 1,
     padding: spacing.lg,
     maxWidth: 960,
     width: '100%',
     alignSelf: 'center',
-    paddingBottom: spacing.xxl,
+    paddingBottom: spacing.sm,
   },
   headerRow: {
     flexDirection: 'row',
@@ -275,13 +365,13 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.textPrimary,
     fontFamily: typography.fontFamilySerif,
     letterSpacing: -0.3,
   },
   subtitle: {
-    fontSize: 12,
+    fontSize: 13,
     color: colors.textSecondary,
     fontFamily: typography.fontFamilyMono,
     marginTop: 2,
@@ -292,18 +382,18 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     borderRadius: 8,
     padding: spacing.md,
-    marginBottom: spacing.lg,
+    marginBottom: spacing.md,
   },
   infoTitle: {
     color: colors.accent,
-    fontWeight: '700',
-    fontSize: 12,
-    fontFamily: typography.fontFamilyMono,
+    fontWeight: '600',
+    fontSize: 13,
+    fontFamily: typography.fontFamily,
     marginBottom: 4,
   },
   infoText: {
     color: colors.textSecondary,
-    fontSize: 12,
+    fontSize: 13,
     lineHeight: 18,
   },
   rulesList: {
@@ -313,9 +403,19 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 10,
+    borderRadius: 12,
     padding: spacing.lg,
     gap: 8,
+    ...(Platform.OS === 'web'
+      ? ({
+          boxShadow: '0 1px 2px rgba(0, 0, 0, 0.03)',
+        } as any)
+      : {
+          shadowColor: '#000000',
+          shadowOffset: { width: 0, height: 1 },
+          shadowOpacity: 0.03,
+          shadowRadius: 2,
+        }),
   },
   cardTopRow: {
     flexDirection: 'row',
@@ -334,7 +434,7 @@ const styles = StyleSheet.create({
   },
   modalBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    backgroundColor: 'rgba(10, 11, 20, 0.75)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: spacing.lg,
@@ -347,6 +447,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     padding: spacing.xl,
+    ...(Platform.OS === 'web'
+      ? ({
+          boxShadow: '0 8px 30px rgba(0, 0, 0, 0.12)',
+        } as any)
+      : {}),
   },
   modalTitle: {
     fontSize: 18,
@@ -409,5 +514,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 12,
     marginTop: spacing.md,
+  },
+  successBanner: {
+    backgroundColor: 'rgba(141, 141, 245, 0.10)',
+    borderWidth: 1,
+    borderColor: colors.electricBlue,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    marginBottom: spacing.lg,
+  },
+  successText: {
+    fontSize: 13,
+    color: colors.electricBlue,
+    fontFamily: typography.fontFamily,
+    fontWeight: '500',
   },
 });

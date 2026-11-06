@@ -7,36 +7,38 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
-  Image,
   useWindowDimensions,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../store/authStore';
-import { colors, typography, spacing, leafRadius } from '../../theme/tokens';
+import { colors, typography, spacing, radius } from '../../theme/tokens';
 import { Button } from '../../components/Button';
 import { HairlineDivider } from '../../components/HairlineDivider';
-import { ThemeToggle } from '../../components/ThemeToggle';
+import WayglimBackground from '../../components/WayglimBackground';
+import { VaultLogo } from '../../components/VaultLogo';
 
 export default function LoginScreen() {
   const router = useRouter();
-  const { width } = useWindowDimensions();
-  const isDesktop = width >= 960;
+  const { width, height } = useWindowDimensions();
+  const isDesktop = width >= 768;
+  const isCompactHeight = height < 720;
+
   const { login, loginDemo, error, clearError } = useAuthStore();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [demoLoading, setDemoLoading] = useState(false);
+  const [engine, setEngine] = useState<'css' | 'webgl'>('css');
 
   const handleLogin = async () => {
     if (!email || !password) return;
     try {
       setLoading(true);
       await login({ email, password });
-      router.replace('/(tabs)/');
+      router.replace('/(tabs)' as any);
     } catch (_err) {
-      // Error handled by store
+      // Handled by store
     } finally {
       setLoading(false);
     }
@@ -46,9 +48,9 @@ export default function LoginScreen() {
     try {
       setDemoLoading(true);
       await loginDemo();
-      router.replace('/(tabs)/');
+      router.replace('/(tabs)' as any);
     } catch (_err) {
-      // Error handled by store
+      // Handled by store
     } finally {
       setDemoLoading(false);
     }
@@ -57,467 +59,592 @@ export default function LoginScreen() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      style={styles.container}
+      style={styles.rootContainer}
     >
-      <View style={[styles.mainWrapper, isDesktop && styles.desktopSplit]}>
-        {/* Editorial Real Photography Hero Column */}
-        {isDesktop ? (
-          <View style={styles.heroColumn}>
-            <Image
-              source={require('../../../assets/images/auth-hero.jpg')}
-              style={styles.heroImage}
-              resizeMode="cover"
-            />
-            <View style={styles.heroOverlay}>
-              <View style={styles.heroBrandRow}>
-                <View style={styles.heroLogoBadge}>
-                  <Text style={styles.heroLogoText}>VL</Text>
-                </View>
-                <Text style={styles.heroBrandTitle}>VAULT LEDGER</Text>
-              </View>
-              <View style={styles.heroTextGroup}>
-                <Text style={styles.heroTagline}>
-                  Precision Double-Entry Engineering Meets Natural Balance
+      {/* Animated Background */}
+      {Platform.OS === 'web' ? (
+        <WayglimBackground layout="fill" engine={engine} />
+      ) : (
+        <View style={[StyleSheet.absoluteFill, { backgroundColor: '#0A0B14' }]} />
+      )}
+
+      {/* Atmospheric Dark Scrim for strict dark mode & maximum contrast */}
+      <View style={styles.darkScrim} pointerEvents="none" />
+
+      {/* Responsive Container: Asymmetric 2-Column Desktop Split vs Compact Mobile Stack */}
+      <View
+        style={[
+          styles.contentWrapper,
+          isDesktop ? styles.contentWrapperDesktop : styles.contentWrapperMobile,
+        ]}
+      >
+        {/* LEFT COLUMN (Desktop) / UPPER SECTION (Mobile): Brand Explainer & Value Proposition */}
+        <View
+          style={[
+            styles.explainerColumn,
+            isDesktop ? styles.explainerDesktop : styles.explainerMobile,
+          ]}
+        >
+          {/* Minimalist Monogram + Brand Title */}
+          <View
+            style={[
+              styles.brandHeader,
+              isDesktop ? styles.brandHeaderDesktop : styles.brandHeaderMobile,
+            ]}
+          >
+            <VaultLogo size={isDesktop ? 52 : 36} variant="mark" />
+            <Text
+              style={[
+                styles.brandTitle,
+                isDesktop ? styles.brandTitleDesktop : styles.brandTitleMobile,
+              ]}
+            >
+              Vault Ledger
+            </Text>
+          </View>
+
+          {/* Clear, Human Headline */}
+          <Text
+            style={[
+              styles.brandHeadline,
+              isDesktop ? styles.brandHeadlineDesktop : styles.brandHeadlineMobile,
+            ]}
+          >
+            Track your accounts, spending, and savings in one place.
+          </Text>
+
+          {/* Real, concise explanation of what the website does */}
+          <Text
+            style={[
+              styles.valueProposition,
+              isDesktop ? styles.valuePropositionDesktop : styles.valuePropositionMobile,
+            ]}
+          >
+            Vault Ledger brings your checking, savings, investment, and credit card balances into a
+            single dashboard. Log transactions, set monthly category budgets, and create simple
+            rules that automatically set aside money for your savings goals.
+          </Text>
+
+          {/* Plain-English overview of the application sections */}
+          {isDesktop ? (
+            <View style={styles.overviewListDesktop}>
+              <View style={styles.overviewRow}>
+                <Text style={styles.overviewLabel}>Accounts & Transactions</Text>
+                <Text style={styles.overviewText}>
+                  View your net worth and filter transactions across checking, savings, and cards.
                 </Text>
-                <Text style={styles.heroSubtitle}>
-                  Institutional-grade personal finance with cryptographic ledger invariant checks,
-                  algorithmic liquidity rules, and 6-month Monte Carlo forecasting.
+              </View>
+              <View style={styles.overviewRow}>
+                <Text style={styles.overviewLabel}>Automatic Savings Rules</Text>
+                <Text style={styles.overviewText}>
+                  Round up everyday purchases to the nearest dollar or save a set share of each paycheck.
                 </Text>
               </View>
-              <View style={styles.heroPillRow}>
-                <View style={styles.heroPill}>
-                  <Text style={styles.heroPillText}>Travertine Canvas</Text>
-                </View>
-                <View style={styles.heroPill}>
-                  <Text style={styles.heroPillText}>Botanical Emerald Core</Text>
-                </View>
-                <View style={styles.heroPill}>
-                  <Text style={styles.heroPillText}>Offline Sandboxed</Text>
-                </View>
+              <View style={[styles.overviewRow, styles.overviewRowLast]}>
+                <Text style={styles.overviewLabel}>Budgets & Goals</Text>
+                <Text style={styles.overviewText}>
+                  Set monthly spending limits by category and track progress toward upcoming goals.
+                </Text>
               </View>
             </View>
-          </View>
-        ) : null}
-
-        {/* Auth Form Column */}
-        <ScrollView
-          style={[styles.scrollColumn, isDesktop && { flex: 1.1 }]}
-          contentContainerStyle={styles.scrollContent}
-        >
-          {/* Mobile Hero Banner */}
-          {!isDesktop && (
-            <View style={styles.mobileHeroBanner}>
-              <Image
-                source={require('../../../assets/images/auth-hero.jpg')}
-                style={styles.mobileHeroImage}
-                resizeMode="cover"
-              />
-              <View style={styles.mobileHeroOverlay}>
-                <Text style={styles.mobileHeroTitle}>VAULT LEDGER</Text>
-              </View>
+          ) : (
+            <View style={styles.capabilityRowMobile}>
+              <Text style={styles.mobileSummaryText}>
+                Accounts · Transactions · Savings Rules · Monthly Budgets
+              </Text>
             </View>
           )}
+        </View>
 
-          <View style={styles.card}>
-            {/* Brand Mark & Theme Toggle */}
-            <View style={styles.brandRow}>
-              <View style={styles.brandLeft}>
-                <View style={styles.brandBadge}>
-                  <Text style={styles.brandBadgeText}>VL</Text>
-                </View>
-                <View>
-                  <Text style={styles.brandTitle}>VAULT LEDGER</Text>
-                  <Text style={styles.brandSubtitle}>DOUBLE-ENTRY CORE</Text>
-                </View>
-              </View>
-              <ThemeToggle variant="icon" />
-            </View>
-
-            <Text style={styles.headline}>Sign In</Text>
-            <Text style={styles.subtext}>
-              Enter your credentials or launch the live sandboxed portfolio.
-            </Text>
-
+        {/* RIGHT COLUMN (Desktop) / LOWER SECTION (Mobile): Frosted Auth Card */}
+        <View
+          style={[
+            styles.cardColumn,
+            isDesktop ? styles.cardColumnDesktop : styles.cardColumnMobile,
+          ]}
+        >
+          {/* Quiet Frosted Card */}
+          <View
+            style={[
+              styles.cardContainer,
+              !isDesktop && styles.cardContainerMobile,
+              isCompactHeight && styles.cardContainerCompact,
+            ]}
+          >
             {error && (
-              <View style={styles.errorBox}>
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityLabel="Dismiss error notification"
+                onPress={clearError}
+                style={styles.errorBanner}
+                activeOpacity={0.8}
+              >
                 <Text style={styles.errorText}>{error}</Text>
-              </View>
+              </TouchableOpacity>
             )}
 
-            {/* Quick Sandbox Demo Action */}
-            <View style={styles.demoBox}>
-              <View style={styles.demoHeaderRow}>
-                <View style={styles.demoPulseDot} />
-                <Text style={styles.demoTitle}>Recruiter & Reviewer Sandbox</Text>
-              </View>
-              <Text style={styles.demoDesc}>
-                Instant zero-friction access with 18 months of seeded double-entry transactions,
-                active rules, and Monte Carlo net worth projection.
-              </Text>
-              <Button
-                title="Launch Live Demo Sandbox →"
-                onPress={handleDemoLogin}
-                loading={demoLoading}
-                variant="primary"
-                style={styles.demoBtn}
-              />
-            </View>
-
-            <View style={styles.dividerRow}>
-              <HairlineDivider style={{ flex: 1 }} />
-              <Text style={styles.orText}>OR EMAIL SIGN IN</Text>
-              <HairlineDivider style={{ flex: 1 }} />
-            </View>
-
-            {/* Email / Password Form */}
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>EMAIL ADDRESS</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="you@domain.com"
-                placeholderTextColor={colors.textTertiary}
-                value={email}
-                onChangeText={(t) => {
-                  clearError();
-                  setEmail(t);
-                }}
-                autoCapitalize="none"
-                keyboardType="email-address"
-              />
-            </View>
-
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>PASSWORD</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="••••••••••••"
-                placeholderTextColor={colors.textTertiary}
-                value={password}
-                onChangeText={(t) => {
-                  clearError();
-                  setPassword(t);
-                }}
-                secureTextEntry
-              />
-            </View>
-
+            {/* Primary Action: 1-Click Demo Sandbox */}
             <Button
-              title="Sign In"
-              onPress={handleLogin}
-              loading={loading}
-              variant="secondary"
-              style={{ marginTop: 8 }}
+              title="Explore demonstration ledger"
+              onPress={handleDemoLogin}
+              loading={demoLoading}
+              variant="primary"
+              size={isDesktop ? 'lg' : 'md'}
+              style={styles.demoBtn}
             />
 
-            <View style={styles.footerRow}>
-              <Text style={styles.footerText}>Don't have an account?</Text>
-              <TouchableOpacity onPress={() => router.push('/(auth)/register' as any)}>
-                <Text style={styles.footerLink}>Create Account</Text>
+            {/* Hairline Divider */}
+            <View style={[styles.dividerRow, !isDesktop && styles.dividerRowMobile]}>
+              <HairlineDivider style={styles.dividerLine} />
+              <Text style={styles.dividerLabel}>or</Text>
+              <HairlineDivider style={styles.dividerLine} />
+            </View>
+
+            {/* Direct Credentials Fields */}
+            <View style={[styles.formFields, !isDesktop && styles.formFieldsMobile]}>
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Email</Text>
+                <TextInput
+                  style={[styles.input, !isDesktop && styles.inputMobile]}
+                  placeholder="auditor@vaultledger.local"
+                  placeholderTextColor={colors.textTertiary}
+                  value={email}
+                  onChangeText={(t) => {
+                    setEmail(t);
+                    if (error) clearError();
+                  }}
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                  autoComplete="email"
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Password</Text>
+                <TextInput
+                  style={[styles.input, !isDesktop && styles.inputMobile]}
+                  placeholder="••••••••••••"
+                  placeholderTextColor={colors.textTertiary}
+                  value={password}
+                  onChangeText={(t) => {
+                    setPassword(t);
+                    if (error) clearError();
+                  }}
+                  secureTextEntry
+                  autoComplete="password"
+                />
+              </View>
+
+              <Button
+                title="Sign in"
+                onPress={handleLogin}
+                loading={loading}
+                variant="outline"
+                size="md"
+                style={styles.submitBtn}
+              />
+            </View>
+
+            {/* Secondary Action */}
+            <View style={[styles.footerRow, !isDesktop && styles.footerRowMobile]}>
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityLabel="Create account"
+                onPress={() => router.push('/(auth)/register' as any)}
+                style={styles.footerLinkTouch}
+              >
+                <Text style={styles.footerLinkText}>Create account</Text>
               </TouchableOpacity>
             </View>
           </View>
-        </ScrollView>
+
+          {/* Refined Tactile Engine Switcher */}
+          {Platform.OS === 'web' && (
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel={`Rendering engine is ${engine.toUpperCase()}. Press to toggle between CSS Hardware Acceleration and WebGL 2 Canvas.`}
+              aria-pressed={engine === 'webgl'}
+              {...({ className: 'vl-engine-badge' } as any)}
+              onPress={() => setEngine(e => (e === 'css' ? 'webgl' : 'css'))}
+              style={[styles.engineBadge, !isDesktop && styles.engineBadgeMobile]}
+              activeOpacity={0.85}
+            >
+              <View
+                style={[
+                  styles.engineStatusDot,
+                  engine === 'webgl' ? styles.engineStatusDotWebgl : styles.engineStatusDotCss,
+                ]}
+              />
+              <Text style={styles.engineBadgeText}>
+                {engine === 'css' ? 'CSS Hardware Mode · Switch to WebGL' : 'WebGL Canvas Mode · Switch to CSS'}
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  rootContainer: {
     flex: 1,
-    backgroundColor: colors.background,
-    minHeight: Platform.OS === 'web' ? ('100vh' as any) : '100%',
-  },
-  mainWrapper: {
-    flex: 1,
-    minHeight: Platform.OS === 'web' ? ('100vh' as any) : '100%',
-  },
-  desktopSplit: {
-    flexDirection: 'row',
-  },
-  heroColumn: {
-    flex: 1,
-    position: 'relative',
-    overflow: 'hidden',
-    minHeight: Platform.OS === 'web' ? ('100vh' as any) : '100%',
-  },
-  heroImage: {
-    width: '100%',
     height: '100%',
+    width: '100%',
+    backgroundColor: '#0A0B14',
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+    position: 'relative',
+    ...(Platform.OS === 'web'
+      ? ({
+          height: '100vh',
+          maxHeight: '100vh',
+          overflow: 'hidden',
+        } as any)
+      : {}),
+  },
+  darkScrim: {
     position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(10, 11, 20, 0.28)',
+    zIndex: 1,
   },
-  heroOverlay: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: 'rgba(28, 24, 20, 0.45)',
-    padding: spacing.xxl,
+  contentWrapper: {
+    width: '100%',
+    zIndex: 2,
+  },
+  contentWrapperDesktop: {
+    flexDirection: 'row',
+    maxWidth: 1040,
+    paddingHorizontal: 36,
     justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 48,
   },
-  heroBrandRow: {
+  contentWrapperMobile: {
+    flexDirection: 'column',
+    maxWidth: 420,
+    paddingHorizontal: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 14,
+  },
+
+  /* Explainer Column / Section */
+  explainerColumn: {
+    zIndex: 2,
+  },
+  explainerDesktop: {
+    flex: 1.15,
+    maxWidth: 480,
+    alignItems: 'flex-start',
+  },
+  explainerMobile: {
+    width: '100%',
+    alignItems: 'center',
+    textAlign: 'center',
+  },
+
+  brandHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  brandHeaderDesktop: {
     gap: 12,
+    marginBottom: 12,
   },
-  heroLogoBadge: {
-    width: 36,
-    height: 36,
-    borderRadius: 8,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  heroLogoText: {
-    color: colors.accent,
-    fontWeight: '800',
-    fontSize: 16,
-    fontFamily: typography.fontFamilyMono,
-  },
-  heroBrandTitle: {
-    color: '#FFFFFF',
-    fontWeight: '800',
-    fontSize: 15,
-    letterSpacing: 1.5,
-  },
-  heroTextGroup: {
-    maxWidth: 520,
-    gap: 16,
-  },
-  heroTagline: {
-    fontSize: 34,
-    fontWeight: '700',
-    color: '#FAF6F0',
-    lineHeight: 42,
-    fontFamily: typography.fontFamilySerif,
-    letterSpacing: -0.5,
-  },
-  heroSubtitle: {
-    fontSize: 15,
-    color: '#EAE1D5',
-    lineHeight: 24,
-    fontFamily: typography.fontFamily,
-  },
-  heroPillRow: {
-    flexDirection: 'row',
-    gap: 10,
-    flexWrap: 'wrap',
-  },
-  heroPill: {
-    backgroundColor: 'rgba(255, 255, 255, 0.16)',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 9999,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.25)',
-  },
-  heroPillText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '600',
-    letterSpacing: 0.3,
-  },
-  mobileHeroBanner: {
-    width: '100%',
-    height: 140,
-    position: 'relative',
-    marginBottom: spacing.md,
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  mobileHeroImage: {
-    width: '100%',
-    height: '100%',
-  },
-  mobileHeroOverlay: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: 'rgba(28, 24, 20, 0.45)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  mobileHeroTitle: {
-    color: '#FFFFFF',
-    fontWeight: '800',
-    fontSize: 18,
-    letterSpacing: 2,
-    fontFamily: typography.fontFamily,
-  },
-  scrollColumn: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: spacing.lg,
-  },
-  card: {
-    width: '100%',
-    maxWidth: 440,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 16,
-    padding: spacing.xl,
-    shadowColor: '#2D261E',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.08,
-    shadowRadius: 20,
-  },
-  brandRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: spacing.lg,
-  },
-  brandLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  brandBadge: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    backgroundColor: colors.accent,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#285430',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-  },
-  brandBadgeText: {
-    color: '#FFFFFF',
-    fontWeight: '800',
-    fontSize: 13,
-    fontFamily: typography.fontFamilyMono,
-  },
-  brandTitle: {
-    color: colors.textPrimary,
-    fontWeight: '800',
-    fontSize: 14,
-    letterSpacing: 1.1,
-    fontFamily: typography.fontFamily,
-  },
-  brandSubtitle: {
-    color: colors.textTertiary,
-    fontSize: 9,
-    fontFamily: typography.fontFamilyMono,
-    letterSpacing: 0.8,
-  },
-  headline: {
-    fontSize: 26,
-    fontWeight: '700',
-    color: colors.textPrimary,
-    marginBottom: 6,
-    fontFamily: typography.fontFamilySerif,
-    letterSpacing: -0.5,
-  },
-  subtext: {
-    fontSize: 13,
-    color: colors.textSecondary,
-    marginBottom: spacing.lg,
-    lineHeight: 18,
-    fontFamily: typography.fontFamily,
-  },
-  demoBox: {
-    backgroundColor: colors.accentSubtle,
-    borderWidth: 1.25,
-    borderColor: colors.borderStrong,
-    borderRadius: 12,
-    padding: spacing.md,
-    marginBottom: spacing.lg,
-  },
-  demoHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  brandHeaderMobile: {
     gap: 8,
     marginBottom: 6,
   },
-  demoPulseDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.positive,
-  },
-  demoTitle: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: colors.accent,
-    letterSpacing: 0.5,
-    textTransform: 'uppercase',
-  },
-  demoDesc: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    lineHeight: 17,
-    marginBottom: spacing.md,
+  brandTitle: {
+    fontWeight: '500',
+    color: '#FFFFFF',
     fontFamily: typography.fontFamily,
+    letterSpacing: -0.5,
+  },
+  brandTitleDesktop: {
+    fontSize: 34,
+    lineHeight: 40,
+  },
+  brandTitleMobile: {
+    fontSize: 24,
+    lineHeight: 28,
+  },
+
+  brandHeadline: {
+    fontFamily: typography.fontFamilySerif,
+    fontWeight: '400',
+    color: '#FFFFFF',
+    letterSpacing: -0.3,
+  },
+  brandHeadlineDesktop: {
+    fontSize: 24,
+    lineHeight: 30,
+    marginBottom: 10,
+    textAlign: 'left',
+  },
+  brandHeadlineMobile: {
+    fontSize: 16,
+    lineHeight: 20,
+    marginBottom: 6,
+    textAlign: 'center',
+  },
+
+  valueProposition: {
+    fontFamily: typography.fontFamily,
+    color: 'rgba(244, 244, 248, 0.86)',
+  },
+  valuePropositionDesktop: {
+    fontSize: 15,
+    lineHeight: 24,
+    marginBottom: 24,
+    textAlign: 'left',
+  },
+  valuePropositionMobile: {
+    fontSize: 12,
+    lineHeight: 18,
+    marginBottom: 10,
+    textAlign: 'center',
+    paddingHorizontal: 4,
+  },
+
+  /* Desktop Editorial Overview List */
+  overviewListDesktop: {
+    width: '100%',
+    borderLeftWidth: 2,
+    borderLeftColor: 'rgba(255, 90, 31, 0.55)',
+    paddingLeft: 16,
+    gap: 14,
+  },
+  overviewRow: {
+    gap: 2,
+  },
+  overviewRowLast: {
+    marginBottom: 0,
+  },
+  overviewLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    fontFamily: typography.fontFamily,
+    lineHeight: 18,
+  },
+  overviewText: {
+    fontSize: 13,
+    color: 'rgba(232, 232, 240, 0.72)',
+    fontFamily: typography.fontFamily,
+    lineHeight: 19,
+  },
+
+  /* Mobile Summary Row */
+  capabilityRowMobile: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  mobileSummaryText: {
+    fontSize: 11,
+    color: 'rgba(232, 232, 240, 0.72)',
+    fontFamily: typography.fontFamily,
+    textAlign: 'center',
+  },
+
+  /* Card Column */
+  cardColumn: {
+    zIndex: 2,
+  },
+  cardColumnDesktop: {
+    flex: 0.95,
+    maxWidth: 410,
+    width: '100%',
+  },
+  cardColumnMobile: {
+    width: '100%',
+    alignItems: 'center',
+  },
+
+  cardContainer: {
+    width: '100%',
+    backgroundColor: 'rgba(18, 19, 36, 0.94)',
+    borderWidth: 1,
+    borderColor: 'rgba(141, 141, 245, 0.22)',
+    borderRadius: radius.lg,
+    padding: 22,
+    ...(Platform.OS === 'web'
+      ? ({
+          boxShadow: '0 24px 48px -12px rgba(0, 0, 0, 0.75)',
+          willChange: 'transform',
+          transform: 'translateZ(0)',
+        } as any)
+      : {}),
+  },
+  cardContainerMobile: {
+    padding: 16,
+  },
+  cardContainerCompact: {
+    padding: 14,
+  },
+  errorBanner: {
+    backgroundColor: 'rgba(232, 36, 60, 0.14)',
+    borderWidth: 1,
+    borderColor: colors.negative,
+    borderRadius: radius.sm,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    marginBottom: spacing.md,
+  },
+  errorText: {
+    color: '#FF7070',
+    fontSize: 12,
+    fontFamily: typography.fontFamily,
+    textAlign: 'center',
   },
   demoBtn: {
     width: '100%',
+    backgroundColor: colors.accent,
+    borderRadius: radius.sm,
+    ...(Platform.OS === 'web'
+      ? ({
+          boxShadow: '0 4px 16px rgba(255, 90, 31, 0.35)',
+        } as any)
+      : {}),
   },
   dividerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
-    marginBottom: spacing.lg,
+    gap: 12,
+    marginVertical: 14,
   },
-  orText: {
-    fontSize: 10,
-    fontFamily: typography.fontFamilyMono,
-    color: colors.textTertiary,
-    letterSpacing: 0.8,
+  dividerRowMobile: {
+    marginVertical: 10,
   },
-  formGroup: {
-    marginBottom: spacing.md,
-    gap: 6,
+  dividerLine: {
+    flex: 1,
+    opacity: 0.25,
   },
-  label: {
+  dividerLabel: {
     fontSize: 11,
+    color: colors.textTertiary,
     fontFamily: typography.fontFamily,
+  },
+  formFields: {
+    gap: 10,
+    width: '100%',
+  },
+  formFieldsMobile: {
+    gap: 8,
+  },
+  inputGroup: {
+    gap: 4,
+  },
+  inputLabel: {
+    fontSize: 11,
     color: colors.textSecondary,
-    fontWeight: '600',
-    letterSpacing: 0.5,
+    fontFamily: typography.fontFamily,
   },
   input: {
-    backgroundColor: colors.surfaceSubtle,
+    height: 40,
+    backgroundColor: 'rgba(10, 11, 22, 0.75)',
     borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderRadius: 8,
-    paddingVertical: 10,
+    borderColor: 'rgba(141, 141, 245, 0.22)',
+    borderRadius: radius.sm,
     paddingHorizontal: 12,
     color: colors.textPrimary,
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: typography.fontFamily,
+    ...(Platform.OS === 'web'
+      ? ({
+          outlineStyle: 'none',
+        } as any)
+      : {}),
+  },
+  inputMobile: {
+    height: 36,
+    fontSize: 12,
+  },
+  submitBtn: {
+    width: '100%',
+    marginTop: 4,
+    borderColor: 'rgba(141, 141, 245, 0.35)',
+    backgroundColor: 'rgba(26, 28, 54, 0.65)',
+    borderRadius: radius.sm,
+  },
+  submitBtnMobile: {
+    marginTop: 2,
   },
   footerRow: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 6,
-    marginTop: spacing.lg,
+    marginTop: 14,
   },
-  footerText: {
-    color: colors.textTertiary,
-    fontSize: 13,
-    fontFamily: typography.fontFamily,
+  footerRowMobile: {
+    marginTop: 10,
   },
-  footerLink: {
-    color: colors.accent,
-    fontSize: 13,
-    fontWeight: '700',
-    fontFamily: typography.fontFamily,
+  footerLinkTouch: {
+    paddingVertical: 4,
+    paddingHorizontal: 8,
   },
-  errorBox: {
-    backgroundColor: colors.negativeSubtle,
-    borderWidth: 1,
-    borderColor: colors.negative,
-    borderRadius: 8,
-    padding: spacing.sm,
-    marginBottom: spacing.md,
-  },
-  errorText: {
-    color: colors.negative,
+  footerLinkText: {
     fontSize: 12,
-    fontWeight: '500',
+    color: colors.textSecondary,
+    fontFamily: typography.fontFamily,
+  },
+  engineBadge: {
+    marginTop: 14,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    backgroundColor: 'rgba(18, 19, 36, 0.75)',
+    borderWidth: 1,
+    borderColor: 'rgba(141, 141, 245, 0.2)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'center',
+    gap: 8,
+  },
+  engineBadgeMobile: {
+    marginTop: 10,
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+  },
+  engineStatusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  engineStatusDotCss: {
+    backgroundColor: colors.accent,
+  },
+  engineStatusDotWebgl: {
+    backgroundColor: colors.irisViolet,
+  },
+  engineBadgeText: {
+    fontSize: 11,
+    color: colors.textSecondary,
+    fontFamily: typography.fontFamily,
+    letterSpacing: 0.2,
+  },
+  engineBadgePrefix: {
+    color: colors.textTertiary,
+    fontFamily: typography.fontFamilyMono,
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  engineBadgeHighlight: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+    fontFamily: typography.fontFamilyMono,
+    fontSize: 11,
+  },
+  engineBadgeAction: {
+    color: colors.textSecondary,
+    fontSize: 11,
   },
 });

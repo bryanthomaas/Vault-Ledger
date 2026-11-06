@@ -1,111 +1,117 @@
 # Vault Ledger
 
-> Production-grade personal finance platform engineered with a strict double-entry ledger, event-driven automation rules engine, recurring subscription detection, and 6-month Monte Carlo predictive forecasting.
+Personal finance platform built around a double-entry accounting ledger, automated savings rules, monthly category budgets, and 6-month cash flow projections.
 
 <p align="center">
-  <img src="screenshots/login-screen.png" alt="Vault Ledger Interface Preview" width="800" style="border-radius: 8px;" />
+  <img src="screenshots/login-screen.png" alt="Vault Ledger Landing Screen" width="880" />
 </p>
 
 ---
 
-## System Overview
+## Interface Gallery
 
-Most personal finance apps suffer from two major flaws:
+### Portfolio Overview & Net Worth Trajectory
+<p align="center">
+  <img src="screenshots/dashboard-screen.png" alt="Vault Ledger Portfolio Overview" width="880" />
+</p>
 
-1. **Floating-Point Imprecision**: Storing balances as IEEE-754 floats (`0.1 + 0.2 === 0.30000000000000004`) leads to rounding drift, silent discrepancies, and accounting errors.
-2. **Single-Entry Mutation**: Updating a single mutable `balance` column makes audits impossible and causes race conditions during concurrent transfers.
+### Transactions & Category Filtering
+<p align="center">
+  <img src="screenshots/transactions-screen.png" alt="Vault Ledger Transactions" width="880" />
+</p>
 
-**Vault Ledger solves this at the database engine level.** Every financial event is recorded as an immutable **double-entry journal entry** composed of balanced postings whose sum of debits and credits is strictly zero. All monetary values are represented as **integer cents** (`bigint` in PostgreSQL, `number` in TypeScript). Account balances and net worth are computed dynamically by aggregating posting amounts, preserving a complete audit trail.
+### Automated Savings Rules & Monthly Budgets
+| Automation Rules | Monthly Budgets |
+| :---: | :---: |
+| <img src="screenshots/rules-screen.png" alt="Automation Rules" width="430" /> | <img src="screenshots/budgets-screen.png" alt="Monthly Budgets" width="430" /> |
 
----
-
-## Architectural Highlights
-
-### 1. Atomic Double-Entry Accounting Core
-
-- **Integer Cents**: Monetary values are stored as signed integer cents. Never floats.
-- **Zero-Sum Ledger Invariant**: Every `journal_entry` contains two or more `postings`. An entry is rejected at the service level if `sum(postings.amountCents) !== 0`.
-- **Dynamic Balance Derivation**: Balances are calculated dynamically by summing postings. No mutable account balance drifts over time.
-- **Strict Classification**: Supports `depository`, `vault`, `investment`, `credit`, `loan`, `equity`, `income`, and `expense` account types following standard GAAP ledger principles.
-
-### 2. Event-Driven Outbox Worker & Rules Engine
-
-- **Transactional Outbox Pattern**: Transactions atomically enqueue `transaction.created` events into an `outbox_events` table within the same PostgreSQL transaction.
-- **Rules Engine**:
-  - **Round-Up Rule**: Rounds purchases up to the nearest dollar with optional multiplier (1x, 2x, 5x, 10x) and transfers spare change into a savings Vault.
-  - **Percent-of-Income Rule**: Automatically detects payroll direct deposits and transfers an agreed percentage (e.g., 15%) directly to savings or investments.
-  - **Cash Sweep Rule**: Periodically sweeps balances exceeding a checking threshold into a high-yield savings Vault.
-- **Idempotency & Anti-Recursion**:
-  - Strict unique index on `(rule_id, source_entry_id)` guarantees rules never double-execute during retries.
-  - System transfers are tagged with `source: 'rule_execution'`, preventing recursive cascades of round-up rules.
-
-### 3. Recurring Detection & Subscription Intelligence
-
-- Analyzes transaction intervals to automatically detect periodic merchants.
-- Identifies **weekly** (6–8 day intervals), **biweekly** (13–16 day intervals), **monthly** (27–33 day intervals), and **annual** (350–380 day intervals) cadences.
-- Tracks average amounts, projects `nextExpectedDate`, and triggers proactive alerts for upcoming bills and subscription price hikes.
-
-### 4. 6-Month Monte Carlo Predictive Forecasting
-
-- Naive linear projections fail because discretionary spending is inherently stochastic.
-- **Vault Ledger's Forecasting Engine**:
-  - Extracts deterministic recurring cash flows (scheduled payroll, rent, utilities, subscriptions).
-  - Analyzes the empirical standard deviation and mean daily spend over the prior 90 days.
-  - Executes **1,000 Monte Carlo simulation runs** using Box-Muller Gaussian sampling.
-  - Yields **p10 (conservative)**, **p50 (median)**, and **p90 (optimistic)** confidence bands plotted onto the interactive asset trajectory chart.
-
-### 5. Deterministic Financial Data Provider
-
-- Includes an out-of-the-box `SyntheticDataProvider` that generates 18 months of realistic, multi-category transaction history (payroll, rent, groceries, coffee, utilities, subscriptions).
-- Every synthetic transaction has a deterministic `externalId`, ensuring idempotent re-syncing without data duplication.
-- Plaid Sandbox adapter with link token generation for live banking integration.
-
-### 6. Editorial Dark-Mode Design System
-
-- Built with an editorial, data-dense fintech aesthetic (inspired by Copilot, Linear, and Bloomberg terminals).
-- High-contrast typography with tabular monospace numerals (`JetBrains Mono` / monospace) to eliminate layout jitter during financial updates.
-- Custom SVG Bezier chart (`d3-shape`) featuring interactive scrub gestures, haptic feedback, and shaded confidence intervals.
-- Universal layout: responsive desktop sidebar navigation on screens `>= 768px` and ergonomic bottom tab bar on mobile.
+### Savings Goals & Activity Log
+| Savings Goals | Activity & Audit Log |
+| :---: | :---: |
+| <img src="screenshots/goals-screen.png" alt="Savings Goals" width="430" /> | <img src="screenshots/activity-screen.png" alt="Activity Log" width="430" /> |
 
 ---
 
-## Monorepo Layout
+## Overview
 
-```
+Traditional finance trackers store account balances as floating-point numbers and overwrite a single balance column when transactions occur. That approach introduces rounding drift and loses the audit trail of how a balance changed over time.
+
+**Vault Ledger** records every financial event as an immutable double-entry journal entry composed of balanced debit and credit postings stored in integer cents (`bigint` in PostgreSQL, `number` in TypeScript). Account balances and net worth are derived directly from posting history, guaranteeing that every transfer between checking, savings, investment, and credit card accounts remains balanced.
+
+---
+
+## Core Capabilities
+
+### 1. Double-Entry Accounting Core
+- **Integer Cents Storage**: All monetary values are stored and calculated in signed integer cents to prevent IEEE-754 floating-point errors.
+- **Zero-Sum Journal Entries**: Every `journal_entry` requires two or more `postings` whose amounts sum to zero (`sum(postings.amountCents) === 0`).
+- **Dynamic Balance Aggregation**: Account balances are computed from posting history rather than mutable balance columns.
+- **Account Classification**: Supports `depository`, `vault`, `investment`, `credit`, `loan`, `equity`, `income`, and `expense` account types.
+
+### 2. Event-Driven Outbox & Automation Rules
+- **Transactional Outbox Pattern**: New transactions enqueue `transaction.created` events inside the same database transaction.
+- **Automated Transfer Rules**:
+  - **Round-Up Rule**: Rounds everyday purchases up to the nearest dollar and transfers the spare change into a savings vault.
+  - **Percent-of-Income Rule**: Detects incoming paycheck deposits and moves a configured percentage into savings.
+  - **Balance Sweep Rule**: Sweeps checking balances above a configured ceiling into a reserve savings vault.
+- **Idempotent Execution**: A unique constraint on `(rule_id, source_entry_id)` ensures rules never fire twice for the same transaction.
+
+### 3. Recurring Expense Detection
+- Analyzes historical merchant intervals to identify weekly (6 to 8 days), biweekly (13 to 16 days), monthly (27 to 33 days), and annual (350 to 380 days) recurring charges.
+- Estimates upcoming charge dates and logs notifications when recurring subscriptions are detected.
+
+### 4. Cash Flow Forecasting
+- Combines scheduled recurring cash flows with historical daily spending variance over the trailing 90 days.
+- Runs 1,000 simulation paths to produce conservative (`p10`), median (`p50`), and optimistic (`p90`) 6-month net worth bands on the interactive trajectory chart.
+
+### 5. Cross-Platform Interface
+- Built with Expo Router and React Native Web for desktop browsers, iOS, and Android from a single TypeScript codebase.
+- Fixed-viewport dark interface (`#0A0B14` canvas, `#121324` surfaces, `#FF5A1F` Tangerine Flame, `#8D8DF5` Iris Violet, and `#FFB03A` Warm Gold accents) with bottom pagination across data tables.
+- Dual-mode animated landing backdrop supporting both zero-overhead CSS hardware composition and interactive WebGL 2 shaders.
+
+---
+
+## Repository Structure
+
+```text
 vault-ledger/
 ├── apps/
-│   ├── api/                      # Fastify 5 REST API & Ledger Service
+│   ├── api/                      # Fastify 5 REST API & Ledger Engine
 │   │   ├── src/
 │   │   │   ├── db/               # Drizzle ORM schema, migrations, connection pool
-│   │   │   ├── plugins/          # JWT auth plugin, OpenAPI Swagger docs
-│   │   │   ├── providers/        # Synthetic & Plaid data sync providers
-│   │   │   ├── routes/           # Accounts, transactions, rules, budgets, goals, insights
-│   │   │   ├── services/         # Double-entry ledger, auth (Argon2id), Monte Carlo
-│   │   │   └── workers/          # Outbox processor, rules engine, recurring detector
-│   │   └── Dockerfile            # Multi-stage production Docker build
-│   └── mobile/                   # Universal Expo 52+ application (Web, iOS, Android)
+│   │   │   ├── plugins/          # JWT authentication & OpenAPI documentation
+│   │   │   ├── providers/        # Synthetic 18-month seed generator & Plaid adapter
+│   │   │   ├── routes/           # REST endpoints for accounts, transactions, rules, budgets, goals
+│   │   │   ├── services/         # Double-entry ledger service, Argon2id auth, forecasting
+│   │   │   └── workers/          # Transactional outbox worker, rules engine, recurring detector
+│   │   └── Dockerfile            # Multi-stage production container build
+│   └── mobile/                   # Expo Router application (Web, iOS, Android)
 │       └── src/
-│           ├── app/              # Expo Router file-based screens (auth + 6 tabs)
-│           ├── components/       # Scrubbable bezier chart, stat blocks, badges, navigation
-│           ├── store/            # Zustand auth & biometric session store
-│           └── theme/            # WCAG-AA compliant tokens & typography
+│           ├── api/              # API client & offline-capable local sandbox fallback
+│           ├── app/              # File-based routes: (auth) login/register & (tabs) views
+│           ├── components/       # Reusable UI components, SVG chart, pagination, navigation
+│           ├── store/            # Zustand authentication & session state stores
+│           └── theme/            # Design tokens, color palette, and typography scale
 ├── packages/
-│   └── shared/                   # Shared types, money utilities, Zod schemas
-├── docker-compose.yml            # Local PostgreSQL 16 on port 5433
-└── .github/workflows/ci.yml      # GitHub Actions CI (lint, typecheck, test, build)
+│   └── shared/                   # Shared TypeScript interfaces, cent math utilities, Zod schemas
+├── e2e/                          # Playwright end-to-end browser verification suite
+├── scripts/
+│   └── serve-dist.ts             # Zero-dependency static preview & local API server
+├── screenshots/                  # Application interface screenshots
+├── docker-compose.yml            # Local PostgreSQL 16 configuration
+└── .github/workflows/ci.yml      # Continuous Integration pipeline
 ```
 
 ---
 
-## Quickstart & Local Development
+## Getting Started
 
 ### Prerequisites
+- **Node.js**: `v22.0.0` or newer
+- **npm**: `v10.0.0` or newer
+- **Docker & Docker Compose** (optional, for running the full PostgreSQL backend)
 
-- **Node.js**: `v22.0.0` or higher
-- **npm**: `v10.0.0` or higher
-- **Docker & Docker Compose** (for local PostgreSQL database)
-
-### 1. Clone & Install
+### 1. Install Dependencies
 
 ```bash
 git clone https://github.com/bryanthomaas/Vault-Ledger.git
@@ -113,135 +119,80 @@ cd Vault-Ledger
 npm install
 ```
 
-### 2. Start PostgreSQL
+### 2. Run with Full PostgreSQL Backend
 
 ```bash
+# Start PostgreSQL 16 container on port 5433
 npm run db:up
-```
 
-_Spins up PostgreSQL 16 on `localhost:5433` with user `vault`, password `vault`, and database `vault_ledger`._
-
-### 3. Run Database Migrations
-
-```bash
+# Apply Drizzle database migrations
 npm run db:migrate
-```
 
-_Applies Drizzle schema migrations to initialize the 12 core tables and unique indexes._
-
-### 4. Start Development Servers
-
-```bash
+# Launch Fastify API (port 3000) and Expo Web (port 8081)
 npm run dev
 ```
 
-This command runs both services concurrently:
+### 3. Run Standalone Web Preview (No Database Required)
 
-- **API**: Running on [http://localhost:3000](http://localhost:3000)
-- **Interactive OpenAPI Docs**: Explore endpoints at [http://localhost:3000/docs](http://localhost:3000/docs)
-- **Web App**: Running on [http://localhost:8081](http://localhost:8081)
-
-### 5. Accessing the Demo Sandbox
-
-Open [http://localhost:8081](http://localhost:8081) in your browser. Click **"Explore Demo Sandbox"** on the login screen.
-
-- A transient demo session is provisioned with 18 months of pre-calculated double-entry ledger transactions, automated rules, monthly category budgets, and savings goals.
-- Or log in manually with:
-  - **Email**: `demo@vaultledger.local`
-  - **Password**: `DemoPass123!`
-
----
-
-## API Reference & Interactive Swagger
-
-When the API is running, full interactive OpenAPI / Swagger documentation is available at:
-
-```
-http://localhost:3000/docs
-```
-
-### Key Endpoints
-
-| Method  | Path                             | Description                                                                    |
-| :------ | :------------------------------- | :----------------------------------------------------------------------------- |
-| `POST`  | `/api/auth/register`             | Register new user account with Argon2id password hashing                       |
-| `POST`  | `/api/auth/login`                | Authenticate and obtain rotating JWT access & refresh tokens                   |
-| `POST`  | `/api/auth/demo`                 | Provision an instant 18-month demo sandbox user                                |
-| `GET`   | `/api/accounts`                  | Fetch all user accounts with dynamically aggregated balances                   |
-| `GET`   | `/api/transactions`              | Query ledger transactions with search, pagination, and category filtering      |
-| `PATCH` | `/api/transactions/:id/category` | Re-categorize a journal entry                                                  |
-| `GET`   | `/api/rules`                     | List user automation rules (round-ups, income %, sweeps)                       |
-| `POST`  | `/api/rules`                     | Create a new automated transfer rule                                           |
-| `PATCH` | `/api/rules/:id/toggle`          | Enable or disable a rule                                                       |
-| `GET`   | `/api/budgets`                   | Fetch monthly category budgets with current period spend                       |
-| `POST`  | `/api/budgets`                   | Upsert monthly budget limit for a category                                     |
-| `GET`   | `/api/goals`                     | List savings goals linked to Vault accounts                                    |
-| `POST`  | `/api/goals`                     | Create a savings goal                                                          |
-| `GET`   | `/api/notifications`             | Stream activity audit log (rules fired, budget overruns, recurring detections) |
-| `PATCH` | `/api/notifications/:id/read`    | Mark an audit notification as read                                             |
-| `POST`  | `/api/notifications/read-all`    | Mark all notifications as read                                                 |
-| `GET`   | `/api/insights/spending`         | Category breakdown & month-over-month velocity                                 |
-| `GET`   | `/api/insights/forecast`         | 6-month Monte Carlo simulation trajectory (p10/p50/p90 bands)                  |
-| `POST`  | `/api/sync/synthetic`            | Deterministically seed 18 months of realistic transactional history            |
-| `GET`   | `/health`                        | Liveness & PostgreSQL connection health check                                  |
-
----
-
-## Verification & Testing Suite
-
-Vault Ledger includes an automated test suite verifying integer math edge cases, ledger zero-sum invariants, rule idempotency, and API endpoints.
+You can also build the web bundle and run the standalone preview server with persistent local JSON storage on port `8199`:
 
 ```bash
-# Run Vitest test suite across all packages (25/25 passing)
+npm run build:web -w @vault-ledger/mobile
+npx tsx scripts/serve-dist.ts
+```
+
+Then open [http://localhost:8199](http://localhost:8199) and click **Explore demonstration ledger** to load the pre-populated 18-month sandbox account, or sign in with:
+- **Email**: `demo@vaultledger.local`
+- **Password**: `DemoPass123!`
+
+---
+
+## REST API Endpoints
+
+When the Fastify server is running on port `3000`, interactive OpenAPI documentation is available at `http://localhost:3000/docs`.
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `POST` | `/api/auth/register` | Register a new user account with Argon2id password hashing |
+| `POST` | `/api/auth/login` | Authenticate user credentials and issue JWT access/refresh tokens |
+| `POST` | `/api/auth/demo` | Provision an 18-month demonstration sandbox account |
+| `GET` | `/api/accounts` | List user accounts with aggregated balances |
+| `GET` | `/api/transactions` | Query ledger postings with search, category filter, and pagination |
+| `POST` | `/api/transactions` | Record a new balanced double-entry journal posting |
+| `PATCH` | `/api/transactions/:id/category` | Update transaction category assignment |
+| `GET` | `/api/rules` | List configured automation rules |
+| `POST` | `/api/rules` | Create a round-up, income percentage, or balance sweep rule |
+| `PATCH` | `/api/rules/:id/toggle` | Enable or disable an automation rule |
+| `GET` | `/api/budgets` | Fetch monthly category budgets and current period spend |
+| `POST` | `/api/budgets` | Create or update a monthly category budget limit |
+| `GET` | `/api/goals` | List savings goals and progress metrics |
+| `POST` | `/api/goals` | Create a new savings goal |
+| `GET` | `/api/notifications` | Retrieve activity and audit notifications |
+| `POST` | `/api/notifications/read-all` | Mark all activity notifications as read |
+| `GET` | `/api/insights/spending` | Category spending breakdown and month-over-month comparison |
+| `GET` | `/api/insights/forecast` | 6-month net worth projection with confidence intervals |
+| `GET` | `/health` | Service liveness and database connectivity check |
+
+---
+
+## Testing & Quality Checks
+
+```bash
+# Run unit and integration tests across workspaces (Vitest)
 npm test
 
-# Static typecheck across all workspaces (TypeScript strict mode)
+# Run strict TypeScript typechecking across all packages
 npm run typecheck
 
-# Code style & ESLint static analysis
+# Run ESLint static analysis
 npm run lint
 
-# Prettier format check
-npm run format:check
-
-# Export optimized production Expo web bundle
-npm run build:web -w @vault-ledger/mobile
+# Run Playwright end-to-end browser tests
+npx playwright test
 ```
-
----
-
-## Production Deployment
-
-### 1. API Deployment (Docker / Container)
-
-The API includes a multi-stage production `Dockerfile` with automated test verification and health checks:
-
-```bash
-docker build -t vault-ledger-api:latest -f apps/api/Dockerfile .
-docker run -p 3000:3000 -e DATABASE_URL="postgres://..." vault-ledger-api:latest
-```
-
-Deployable seamlessly to **Render**, **Railway**, **Fly.io**, or **AWS ECS**.
-
-### 2. Database (Managed PostgreSQL)
-
-Requires a standard PostgreSQL instance (version 15+). Compatible with **Neon**, **Supabase**, or **AWS RDS**:
-
-```bash
-DATABASE_URL="postgres://user:password@neon-host/vault_ledger?sslmode=require" npm run db:migrate
-```
-
-### 3. Frontend Deployment (Web & Native)
-
-- **Web**: Run `npm run build:web -w @vault-ledger/mobile` and deploy the output in `apps/mobile/dist` to **Vercel**, **Cloudflare Pages**, or **Netlify**.
-- **iOS & Android**: Build native binaries using Expo Application Services:
-  ```bash
-  cd apps/mobile
-  npx eas-cli build --platform all
-  ```
 
 ---
 
 ## License
 
-MIT © [Bryan Thomas](https://github.com/bryanthomaas)
+MIT License (c) [Bryan Thomas](https://github.com/bryanthomaas)

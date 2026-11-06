@@ -28,9 +28,9 @@ async function main() {
   try {
     const address = await server.listen({ port: PORT, host: HOST });
     console.log(`\n======================================================`);
-    console.log(`🚀 Vault Ledger API active at: ${address}`);
-    console.log(`📖 Interactive OpenAPI Docs at: ${address}/docs`);
-    console.log(`❤️  Health check available at: ${address}/health`);
+    console.log(`[API]    Vault Ledger API active at: ${address}`);
+    console.log(`[Docs]   Interactive OpenAPI Docs at: ${address}/docs`);
+    console.log(`[Health] Health check available at: ${address}/health`);
     console.log(`======================================================\n`);
   } catch (err) {
     server.log.error(err);

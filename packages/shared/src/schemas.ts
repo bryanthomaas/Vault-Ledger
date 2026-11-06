@@ -42,7 +42,7 @@ export const RefreshTokenInputSchema = z.object({
 export type RefreshTokenInput = z.infer<typeof RefreshTokenInputSchema>;
 
 // ==========================================
-// Accounts & Double-Entry Ledger Schemas
+// Accounts & Ledger Core Schemas
 // ==========================================
 
 export const AccountTypeSchema = z.enum([
