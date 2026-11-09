@@ -2,33 +2,29 @@
 
 Personal finance platform built around a double-entry accounting ledger, automated savings rules, monthly category budgets, and 6-month cash flow projections.
 
-<p align="center">
-  <img src="screenshots/login-screen.png" alt="Vault Ledger Landing Screen" width="880" />
-</p>
+![Vault Ledger Landing Screen](./screenshots/login-screen.png)
 
 ---
 
 ## Interface Gallery
 
 ### Portfolio Overview & Net Worth Trajectory
-<p align="center">
-  <img src="screenshots/dashboard-screen.png" alt="Vault Ledger Portfolio Overview" width="880" />
-</p>
+![Vault Ledger Portfolio Overview](./screenshots/dashboard-screen.png)
 
 ### Transactions & Category Filtering
-<p align="center">
-  <img src="screenshots/transactions-screen.png" alt="Vault Ledger Transactions" width="880" />
-</p>
+![Vault Ledger Transactions](./screenshots/transactions-screen.png)
 
-### Automated Savings Rules & Monthly Budgets
-| Automation Rules | Monthly Budgets |
-| :---: | :---: |
-| <img src="screenshots/rules-screen.png" alt="Automation Rules" width="430" /> | <img src="screenshots/budgets-screen.png" alt="Monthly Budgets" width="430" /> |
+### Automated Savings Rules
+![Automation Rules](./screenshots/rules-screen.png)
 
-### Savings Goals & Activity Log
-| Savings Goals | Activity & Audit Log |
-| :---: | :---: |
-| <img src="screenshots/goals-screen.png" alt="Savings Goals" width="430" /> | <img src="screenshots/activity-screen.png" alt="Activity Log" width="430" /> |
+### Monthly Category Budgets
+![Monthly Budgets](./screenshots/budgets-screen.png)
+
+### Savings Goals
+![Savings Goals](./screenshots/goals-screen.png)
+
+### Activity & Audit Log
+![Activity Log](./screenshots/activity-screen.png)
 
 ---
 

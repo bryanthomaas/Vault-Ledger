@@ -48,8 +48,6 @@ test.describe('User Interactive Features & Layout Verification', () => {
       return docHeight <= winHeight + 2; // allowance for subpixel rounding
     });
     expect(isNonScrollable).toBe(true);
-
-    await page.screenshot({ path: 'screenshots/login-screen.png' });
   });
 
   test('2. Transactions: "+ Record Posting" button opens modal, submits new transaction, updates list', async ({ page }) => {
@@ -85,8 +83,6 @@ test.describe('User Interactive Features & Layout Verification', () => {
     // Verify modal closes and new transaction appears
     await expect(page.getByText('Client Retainer Payment').first()).toBeVisible({ timeout: 5000 });
     await expect(page.getByText('+$750.00').first()).toBeVisible();
-
-    await page.screenshot({ path: 'screenshots/transactions-screen.png' });
   });
 
   test('3. Rules: "Test Execution" button fires automated round-up and updates ledger state', async ({ page }) => {
@@ -111,8 +107,6 @@ test.describe('User Interactive Features & Layout Verification', () => {
 
     // Verify execution confirmation message
     await expect(page.getByText(/Rule executed/i)).toBeVisible({ timeout: 5000 });
-
-    await page.screenshot({ path: 'screenshots/rules-screen.png' });
   });
 
   test('4. Goals: "+ $100" deposit button increases savings and updates progress bar', async ({ page }) => {
@@ -132,8 +126,6 @@ test.describe('User Interactive Features & Layout Verification', () => {
     await expect(plus100Btn).toBeVisible();
     await plus100Btn.click();
     await page.waitForTimeout(500);
-
-    await page.screenshot({ path: 'screenshots/goals-screen.png' });
   });
 
   test('5. Budgets: "Adjust limit" opens limit adjustment modal and updates allocation', async ({ page }) => {
@@ -160,8 +152,6 @@ test.describe('User Interactive Features & Layout Verification', () => {
 
     await page.getByRole('button', { name: /Save budget/i }).click();
     await page.waitForTimeout(500);
-
-    await page.screenshot({ path: 'screenshots/budgets-screen.png' });
   });
 
   test('6. Overview: Quick action buttons navigate directly to creation workflows', async ({ page }) => {
@@ -177,7 +167,5 @@ test.describe('User Interactive Features & Layout Verification', () => {
     await expect(page.getByRole('button', { name: /\+ Automation Rule/i })).toBeVisible();
     await expect(page.getByRole('button', { name: /Adjust Budgets/i })).toBeVisible();
     await expect(page.getByRole('button', { name: /Savings Goals/i })).toBeVisible();
-
-    await page.screenshot({ path: 'screenshots/dashboard-screen.png' });
   });
 });

@@ -77,22 +77,26 @@ test.describe('Vault Ledger Web Application Smoke Test', () => {
 
     // Navigate to Transactions
     await page.locator('#vl-desktop-sidebar').getByText('Transactions', { exact: true }).click();
-    await expect(page.getByText(/postings verified|ledger postings/i)).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(/Blue Bottle Coffee/i)).toBeVisible({ timeout: 5000 });
+    await page.waitForTimeout(500);
     await page.screenshot({ path: 'screenshots/transactions-screen.png' });
 
     // Navigate to Budgets
     await page.locator('#vl-desktop-sidebar').getByText('Budgets', { exact: true }).click();
     await expect(page.getByText(/Monthly budgets/i)).toBeVisible({ timeout: 5000 });
+    await page.waitForTimeout(500);
     await page.screenshot({ path: 'screenshots/budgets-screen.png' });
 
     // Navigate to Goals
     await page.locator('#vl-desktop-sidebar').getByText('Goals', { exact: true }).click();
     await expect(page.getByText(/Savings goals/i)).toBeVisible({ timeout: 5000 });
+    await page.waitForTimeout(500);
     await page.screenshot({ path: 'screenshots/goals-screen.png' });
 
     // Navigate to Activity
     await page.locator('#vl-desktop-sidebar').getByText('Activity', { exact: true }).click();
     await expect(page.getByText(/Activity & audit log/i)).toBeVisible({ timeout: 5000 });
+    await page.waitForTimeout(500);
     await page.screenshot({ path: 'screenshots/activity-screen.png' });
   });
 
