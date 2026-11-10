@@ -1,0 +1,122 @@
+/* Vault Ledger Global Web Stylesheet & Design Tokens */
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..800;1,9..144,300..800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root,
+[data-theme="dark"],
+body {
+  --vl-bg: #0A0B14;
+  --vl-canvas: #0A0B14;
+  --vl-canvas-muted: #07070F;
+  --vl-surface: #121324;
+  --vl-surface-subtle: #17192E;
+  --vl-surface-raised: #1F223D;
+  --vl-surface-highlight: #272B4E;
+  --vl-surface-elevated: #1A1E38;
+  --vl-surface-glass: rgba(18, 19, 36, 0.88);
+  --vl-glass-border: rgba(141, 141, 245, 0.20);
+  --vl-glass-highlight: rgba(141, 141, 245, 0.32);
+  --vl-electric-blue: #8D8DF5;
+  --vl-electric-blue-deep: #6A6AE0;
+  --vl-electric-blue-subtle: rgba(141, 141, 245, 0.14);
+  --vl-electric-blue-border: rgba(141, 141, 245, 0.28);
+  --vl-border: rgba(141, 141, 245, 0.16);
+  --vl-border-strong: rgba(141, 141, 245, 0.34);
+  --vl-text-primary: #FFFFFF;
+  --vl-text-secondary: #C8CCEE;
+  --vl-text-tertiary: #7F84B2;
+  --vl-sand: #17192E;
+  --vl-sand-subtle: #1F223D;
+  --vl-sand-muted: #7F84B2;
+  --vl-wood-warm: #272B4E;
+  --vl-accent: #FF5A1F;
+  --vl-accent-hover: #E84A12;
+  --vl-accent-subtle: rgba(255, 90, 31, 0.15);
+  --vl-accent-border: rgba(255, 90, 31, 0.45);
+  --vl-accent-gold: #FFB03A;
+  --vl-accent-peach: #FF8A5C;
+  --vl-iris-violet: #8D8DF5;
+  --vl-crimson: #E8243C;
+  --vl-positive: #10B981;
+  --vl-positive-subtle: rgba(16, 185, 129, 0.14);
+  --vl-positive-border: rgba(16, 185, 129, 0.30);
+  --vl-negative: #E8243C;
+  --vl-negative-subtle: rgba(232, 36, 60, 0.14);
+  --vl-negative-border: rgba(232, 36, 60, 0.30);
+  --vl-warning: #FFB03A;
+  --vl-warning-subtle: rgba(255, 176, 58, 0.14);
+  --vl-warning-border: rgba(255, 176, 58, 0.35);
+}
+
+html,
+body,
+#root,
+[data-testid="root"] {
+  background-color: #0A0B14 !important;
+  color: #FFFFFF !important;
+  font-family: 'Fraunces', Georgia, serif !important;
+  margin: 0;
+  padding: 0;
+  height: 100vh !important;
+  max-height: 100vh !important;
+  overflow: hidden !important;
+}
+
+.vl-interactive-row,
+[data-interactive="row"] {
+  cursor: pointer !important;
+  transition: background-color 0.14s ease, border-color 0.14s ease !important;
+}
+
+.vl-interactive-row:hover,
+[data-interactive="row"]:hover {
+  background-color: rgba(141, 141, 245, 0.06) !important;
+}
+
+.vl-interactive-row:active,
+[data-interactive="row"]:active {
+  background-color: rgba(141, 141, 245, 0.10) !important;
+  transform: scale(0.998) !important;
+}
+
+.vl-interactive-card,
+[data-interactive="card"] {
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.18s ease !important;
+}
+
+.vl-interactive-card:hover,
+[data-interactive="card"]:hover {
+  border-color: rgba(141, 141, 245, 0.35) !important;
+  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(141, 141, 245, 0.20) !important;
+  transform: translateY(-1px) !important;
+}
+
+.vl-nav-item,
+[data-interactive="nav"] {
+  cursor: pointer !important;
+  transition: background-color 0.15s ease, color 0.15s ease !important;
+}
+
+.vl-nav-item:hover {
+  background-color: rgba(141, 141, 245, 0.08) !important;
+}
+
+.vl-engine-badge {
+  cursor: pointer !important;
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.18s ease,
+              border-color 0.18s ease,
+              background-color 0.18s ease !important;
+}
+
+.vl-engine-badge:hover {
+  background-color: rgba(26, 28, 54, 0.92) !important;
+  border-color: rgba(141, 141, 245, 0.45) !important;
+  box-shadow: 0 4px 16px rgba(141, 141, 245, 0.22), 0 0 0 1px rgba(141, 141, 245, 0.25) !important;
+  transform: translateY(-1px) !important;
+}
+
+.vl-engine-badge:active {
+  transform: translateY(1px) scale(0.98) !important;
+}

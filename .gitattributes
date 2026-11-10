@@ -1,0 +1,3 @@
+*.css linguist-detectable=true
+*.sql linguist-detectable=true
+Dockerfile linguist-detectable=true
