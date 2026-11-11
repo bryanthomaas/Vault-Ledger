@@ -6,22 +6,24 @@ import { OutboxWorker } from './workers/outboxWorker';
 
 dotenv.config();
 
-const PORT = parseInt(process.env.PORT || '4000', 10);
+const PORT = parseInt(process.env.PORT || '3000', 10);
 const HOST = process.env.HOST || '0.0.0.0';
 const RUN_WORKER = process.env.RUN_WORKER !== 'false';
 
 async function main() {
+  let dbConnected = false;
   // Attempt to run migrations on startup
   try {
     await runMigrations();
+    dbConnected = true;
   } catch (err: any) {
-    console.warn(`[Startup] Note: Auto-migration deferred: ${err.message}`);
+    console.warn(`[Startup] Note: PostgreSQL unavailable (${err.message}). Running in stateless API mode.`);
   }
 
   const server = await createServer();
   const worker = new OutboxWorker();
 
-  if (RUN_WORKER) {
+  if (RUN_WORKER && dbConnected) {
     worker.start(2500);
   }
 

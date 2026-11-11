@@ -12,6 +12,8 @@
     "apps/*"
   ],
   "scripts": {
+    "start": "npx tsx scripts/serve-dist.ts",
+    "preview": "npm run build:web -w @vault-ledger/mobile && npx tsx scripts/serve-dist.ts",
     "db:up": "node -e \"const { execSync } = require('child_process'); try { execSync('docker compose up -d db', { stdio: 'inherit' }); } catch (e) { console.warn('Note: Docker DB container startup skipped (Docker daemon not running). Using mock demo mode.'); }\"",
     "db:down": "docker compose down",
     "db:migrate": "npm run db:migrate -w @vault-ledger/api",

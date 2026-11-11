@@ -2,12 +2,21 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import { execSync } from 'node:child_process';
 
 const PORT = parseInt(process.env.PORT || '8199', 10);
 const ROOT_DIR = path.resolve(__dirname, '..');
 const DIST = path.resolve(ROOT_DIR, 'apps/mobile/dist');
 const DATA_DIR = path.resolve(ROOT_DIR, 'data');
 const STORAGE_FILE = path.join(DATA_DIR, 'vault_storage.json');
+
+if (!fs.existsSync(path.join(DIST, 'index.html'))) {
+  console.log('Building web bundle into apps/mobile/dist...');
+  execSync('npm run build:web -w @vault-ledger/mobile', {
+    cwd: ROOT_DIR,
+    stdio: 'inherit',
+  });
+}
 
 const MIME_TYPES: Record<string, string> = {
   '.html': 'text/html',
